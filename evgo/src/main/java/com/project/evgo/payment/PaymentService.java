@@ -13,7 +13,9 @@ public interface PaymentService {
 
     Optional<PaymentResponse> findById(Long id);
 
-    Optional<PaymentResponse> findByBookingId(Long bookingId);
+    Optional<PaymentResponse> findByInvoiceId(Long invoiceId);
+
+    String createPaymentUrl(Long invoiceId);
 
     List<PaymentResponse> findByUserId(Long userId);
 }

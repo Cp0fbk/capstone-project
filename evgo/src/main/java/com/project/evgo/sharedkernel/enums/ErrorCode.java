@@ -70,6 +70,13 @@ public enum ErrorCode {
     // Navigation errors (9xxx)
     NAVIGATION_SERVICE_UNAVAILABLE(9001, HttpStatus.SERVICE_UNAVAILABLE, "Navigation service unavailable"),
     ROUTE_CALCULATION_FAILED(9002, HttpStatus.INTERNAL_SERVER_ERROR, "Failed to calculate route"),
+
+    // Payment errors (10xxx)
+    PAYMENT_NOT_FOUND(10001, HttpStatus.NOT_FOUND, "Payment not found"),
+    INVOICE_NOT_FOUND(10002, HttpStatus.NOT_FOUND, "Invoice not found"),
+    INVOICE_ALREADY_PAID(10003, HttpStatus.BAD_REQUEST, "Invoice is already paid"),
+    PAYMENT_FAILED(10004, HttpStatus.BAD_REQUEST, "Payment failed"),
+    INVALID_PAYMENT_AMOUNT(10005, HttpStatus.BAD_REQUEST, "Invalid payment amount"),
     ;
 
     private final int code;

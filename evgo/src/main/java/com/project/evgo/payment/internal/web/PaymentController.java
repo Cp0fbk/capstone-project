@@ -23,42 +23,42 @@ import java.util.List;
 @Tag(name = "Payments", description = "Payment management APIs")
 public class PaymentController {
 
-    private final PaymentService paymentService;
+        private final PaymentService paymentService;
 
-    @GetMapping("/{id}")
-    @Operation(summary = "Get payment by ID")
-    public ResponseEntity<ApiResponse<PaymentResponse>> getById(@PathVariable Long id) {
-        var result = paymentService.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
-        return ResponseEntity.ok(ApiResponse.<PaymentResponse>builder()
-                .status(HttpStatus.OK.value())
-                .message("Success")
-                .data(result)
-                .build());
-    }
+        @GetMapping("/{id}")
+        @Operation(summary = "Get payment by ID")
+        public ResponseEntity<ApiResponse<PaymentResponse>> getById(@PathVariable Long id) {
+                var result = paymentService.findById(id)
+                                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                return ResponseEntity.ok(ApiResponse.<PaymentResponse>builder()
+                                .status(HttpStatus.OK.value())
+                                .message("Success")
+                                .data(result)
+                                .build());
+        }
 
-    @GetMapping("/booking/{bookingId}")
-    @Operation(summary = "Get payment by booking ID")
-    public ResponseEntity<ApiResponse<PaymentResponse>> getByBookingId(
-            @PathVariable Long bookingId) {
-        var result = paymentService.findByBookingId(bookingId)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
-        return ResponseEntity.ok(ApiResponse.<PaymentResponse>builder()
-                .status(HttpStatus.OK.value())
-                .message("Success")
-                .data(result)
-                .build());
-    }
+        @GetMapping("/invoice/{invoiceId}")
+        @Operation(summary = "Get payment by invoice ID")
+        public ResponseEntity<ApiResponse<PaymentResponse>> getByInvoiceId(
+                        @PathVariable Long invoiceId) {
+                var result = paymentService.findByInvoiceId(invoiceId)
+                                .orElseThrow(() -> new AppException(ErrorCode.INVOICE_NOT_FOUND));
+                return ResponseEntity.ok(ApiResponse.<PaymentResponse>builder()
+                                .status(HttpStatus.OK.value())
+                                .message("Success")
+                                .data(result)
+                                .build());
+        }
 
-    @GetMapping("/user/{userId}")
-    @Operation(summary = "Get payments by user ID")
-    public ResponseEntity<ApiResponse<List<PaymentResponse>>> getByUserId(
-            @PathVariable Long userId) {
-        var result = paymentService.findByUserId(userId);
-        return ResponseEntity.ok(ApiResponse.<List<PaymentResponse>>builder()
-                .status(HttpStatus.OK.value())
-                .message("Success")
-                .data(result)
-                .build());
-    }
+        @GetMapping("/user/{userId}")
+        @Operation(summary = "Get payments by user ID")
+        public ResponseEntity<ApiResponse<List<PaymentResponse>>> getByUserId(
+                        @PathVariable Long userId) {
+                var result = paymentService.findByUserId(userId);
+                return ResponseEntity.ok(ApiResponse.<List<PaymentResponse>>builder()
+                                .status(HttpStatus.OK.value())
+                                .message("Success")
+                                .data(result)
+                                .build());
+        }
 }

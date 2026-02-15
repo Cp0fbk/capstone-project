@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 public class PaymentResponse {
 
     private Long id;
-    private Long bookingId;
+    private Long invoiceId;
     private Long userId;
     private BigDecimal amount;
     private String transactionId;

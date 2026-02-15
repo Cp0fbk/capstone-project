@@ -110,3 +110,13 @@ cloudinary:
     cloud-name: ${CLOUD_NAME}
     api-key: ${CLOUD_API_KEY}
     api-secret: ${CLOUD_API_SECRET}
+
+payment:
+  momo:
+    partner-code: ${MOMO_PARTNER_CODE}
+    access-key: ${MOMO_ACCESS_KEY}
+    secret-key: ${MOMO_SECRET_KEY}
+    endpoint: ${MOMO_ENDPOINT}
+    create-url: ${MOMO_CREATE_URL}
+    redirect-url: ${MOMO_REDIRECT_URL}
+    ipn-url: ${MOMO_IPN_URL}
