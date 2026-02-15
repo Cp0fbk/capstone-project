@@ -1,5 +1,6 @@
 package com.project.evgo.payment.internal;
 
+import com.project.evgo.sharedkernel.enums.PaymentMethod;
 import com.project.evgo.sharedkernel.enums.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -16,7 +17,6 @@ import java.time.LocalDateTime;
  * Payment entity.
  * Internal - not accessible by other modules.
  */
-//TODO: check if needed
 @Entity
 @Getter
 @Setter
@@ -29,8 +29,9 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "booking_id", nullable = false)
-    private Long bookingId;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "invoice_id", nullable = false)
+    private Invoice invoice;
 
     @Column(name = "user_id", nullable = false)
     private Long userId;
@@ -47,6 +48,10 @@ public class Payment {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PaymentStatus status = PaymentStatus.PENDING;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_method")
+    private PaymentMethod paymentMethod;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

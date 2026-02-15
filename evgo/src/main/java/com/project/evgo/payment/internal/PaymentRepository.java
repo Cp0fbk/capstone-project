@@ -1,18 +1,14 @@
 package com.project.evgo.payment.internal;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
-/**
- * Repository for Payment entity.
- */
+@Repository
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
+    Optional<Payment> findByInvoiceId(Long invoiceId);
 
-    Optional<Payment> findByBookingId(Long bookingId);
-
-    Optional<Payment> findByOrderId(String orderId);
-
-    List<Payment> findByUserId(Long userId);
+    // List<Payment> findByUserId(Long userId); // Uncomment if needed and import
+    // List
 }

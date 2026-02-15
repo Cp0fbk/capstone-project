@@ -13,6 +13,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Invoice entity - represents a billing invoice.
@@ -58,6 +60,12 @@ public class Invoice {
 
     @CreationTimestamp
     private LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Transaction> transactions = new ArrayList<>();
+
+    @OneToOne(mappedBy = "invoice", cascade = CascadeType.ALL)
+    private Payment payment;
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
