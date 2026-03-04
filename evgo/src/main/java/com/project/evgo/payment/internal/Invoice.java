@@ -64,9 +64,6 @@ public class Invoice {
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Transaction> transactions = new ArrayList<>();
 
-    @OneToOne(mappedBy = "invoice", cascade = CascadeType.ALL)
-    private Payment payment;
-
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 }

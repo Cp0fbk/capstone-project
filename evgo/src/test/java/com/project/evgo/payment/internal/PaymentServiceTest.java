@@ -22,9 +22,6 @@ import static org.mockito.Mockito.when;
 class PaymentServiceTest {
 
     @Mock
-    private PaymentRepository paymentRepository;
-
-    @Mock
     private InvoiceRepository invoiceRepository; // We need to mock looking up the invoice
 
     @Mock

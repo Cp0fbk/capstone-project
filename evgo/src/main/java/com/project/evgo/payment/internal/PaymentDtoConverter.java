@@ -1,36 +1,37 @@
 package com.project.evgo.payment.internal;
 
 import com.project.evgo.payment.response.PaymentResponse;
+import com.project.evgo.sharedkernel.enums.PaymentStatus;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
 
 /**
- * Converter for Payment entity to DTO.
+ * Converter for Transaction entity to DTO.
  */
 @Component
 public class PaymentDtoConverter {
 
-    public PaymentResponse toResponse(Payment payment) {
+    public PaymentResponse toResponse(Transaction transaction) {
         return PaymentResponse.builder()
-                .id(payment.getId())
-                .invoiceId(payment.getInvoice().getId())
-                .userId(payment.getUserId())
-                .amount(payment.getAmount())
-                .transactionId(payment.getTransactionId())
-                .status(payment.getStatus())
-                .createdAt(payment.getCreatedAt())
+                .id(transaction.getId())
+                .invoiceId(transaction.getInvoice().getId())
+                .userId(transaction.getInvoice().getUserId())
+                .amount(transaction.getAmount())
+                .transactionId(transaction.getGatewayTransactionId())
+                .status(PaymentStatus.valueOf(transaction.getStatus().name()))
+                .createdAt(transaction.getCreatedAt())
                 .build();
     }
 
-    public List<PaymentResponse> toResponseList(List<Payment> payments) {
-        return payments.stream()
+    public List<PaymentResponse> toResponseList(List<Transaction> transactions) {
+        return transactions.stream()
                 .map(this::toResponse)
                 .toList();
     }
 
-    public Optional<PaymentResponse> toResponse(Optional<Payment> payment) {
-        return payment.map(this::toResponse);
+    public Optional<PaymentResponse> toResponse(Optional<Transaction> transaction) {
+        return transaction.map(this::toResponse);
     }
 }

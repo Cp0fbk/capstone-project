@@ -21,27 +21,32 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 public class PaymentServiceImpl implements PaymentService {
 
-    private final PaymentRepository paymentRepository;
+    private final TransactionRepository transactionRepository;
     private final PaymentDtoConverter converter;
     private final PaymentGatewayService paymentGatewayService;
     private final InvoiceRepository invoiceRepository;
 
     @Override
     public Optional<PaymentResponse> findById(Long id) {
-        return converter.toResponse(paymentRepository.findById(id));
+        return converter.toResponse(transactionRepository.findById(id));
     }
 
     @Override
     public Optional<PaymentResponse> findByInvoiceId(Long invoiceId) {
-        return converter.toResponse(paymentRepository.findByInvoiceId(invoiceId));
+        List<Transaction> transactions = transactionRepository.findByInvoiceId(invoiceId);
+        if (transactions.isEmpty()) {
+            return Optional.empty();
+        }
+        // Return the most recent transaction
+        Transaction latest = transactions.stream()
+                .max((t1, t2) -> t1.getCreatedAt().compareTo(t2.getCreatedAt()))
+                .get();
+        return converter.toResponse(Optional.of(latest));
     }
 
     @Override
     public List<PaymentResponse> findByUserId(Long userId) {
-        // Mock implementation for now to fix compile error if repository method is
-        // commented out
-        // return converter.toResponseList(paymentRepository.findByUserId(userId));
-        return List.of();
+        return converter.toResponseList(transactionRepository.findByInvoiceUserId(userId));
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.project.evgo.payment.internal;
 
+import com.project.evgo.sharedkernel.enums.PaymentMethod;
 import com.project.evgo.sharedkernel.enums.TransactionStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -31,6 +32,13 @@ public class Transaction {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "invoice_id", nullable = false)
     private Invoice invoice;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_method")
+    private PaymentMethod paymentMethod;
+
+    @Column(name = "order_id", unique = true)
+    private String orderId;
 
     @Column(name = "gateway_transaction_id")
     private String gatewayTransactionId;
