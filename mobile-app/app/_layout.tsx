@@ -66,6 +66,10 @@ export default function RootLayout() {
                         name="station"
                         options={{ headerShown: false }}
                     />
+                    <Stack.Screen
+                        name="booking"
+                        options={{ headerShown: false }}
+                    />
                 </Stack>
             </ThemeProvider>
             <ToastManager duration={1500} />

@@ -386,8 +386,7 @@ export default function StationDetailScreen() {
                             variant="primary"
                             fullWidth
                             onPress={() => {
-                                // Navigate to QR scan or charging flow
-                                router.push("/qr_scan");
+                                router.push(`/booking/selectVehicle?stationId=${id}`);
                             }}
                             className="mb-6"
                         >
