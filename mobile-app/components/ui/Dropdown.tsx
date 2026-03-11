@@ -45,7 +45,7 @@ export default function Dropdown({
         <View className="mt-4">
             <Text className="mb-3 text-[#9BA1A6] text-sm">{label}</Text>
             <TouchableOpacity
-                className="flex-row justify-between items-center pb-3 border-[#4A5568] border-b"
+                className="flex-row justify-between items-center pb-3 border-border-gray border-b"
                 activeOpacity={0.7}
                 onPress={() => !disabled && setIsOpen(!isOpen)}
                 disabled={disabled}
@@ -76,10 +76,10 @@ export default function Dropdown({
                         <View className="bg-[#333739] pt-2 pb-8 rounded-t-3xl">
                             {/* Swipe Indicator */}
                             <View className="items-center mb-4">
-                                <View className="bg-[#4A5568] rounded-full w-12 h-1" />
+                                <View className="bg-border-gray rounded-full w-12 h-1" />
                             </View>
 
-                            <View className="flex-row justify-center items-center px-6 pb-4 border-[#4A5568] border-b">
+                            <View className="flex-row justify-center items-center px-6 pb-4 border-border-gray border-b">
                                 <Text className="font-semibold text-white text-lg text-center">
                                     {label}
                                 </Text>

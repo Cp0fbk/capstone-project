@@ -1,5 +1,6 @@
 import React from "react";
 import { Text, View, ViewProps } from "react-native";
+import Card from "./Card";
 
 export interface ListItemCardProps extends ViewProps {
     /**
@@ -44,8 +45,8 @@ export default function ListItemCard({
     ...props
 }: ListItemCardProps) {
     return (
-        <View
-            className={`bg-[#4A5568]/20 mb-4 p-4 border border-[#4A5568] rounded-lg ${elementClassName}`}
+        <Card
+            className={`mb-4 ${elementClassName}`}
             {...props}
         >
             <View className="flex-row justify-between items-start">
@@ -73,6 +74,6 @@ export default function ListItemCard({
                     </View>
                 )}
             </View>
-        </View>
+        </Card>
     );
 }

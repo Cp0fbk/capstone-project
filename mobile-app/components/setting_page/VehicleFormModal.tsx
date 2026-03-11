@@ -85,13 +85,13 @@ export default function VehicleFormModal({
                     activeOpacity={1}
                 >
                     <TouchableOpacity activeOpacity={1}>
-                        <View className="bg-[#333739] pb-8 rounded-t-3xl">
+                        <View className="bg-surface pb-8 rounded-t-3xl">
                             {/* Swipe Indicator */}
                             <View className="items-center mt-2 mb-2">
-                                <View className="bg-[#4A5568] rounded-full w-12 h-1" />
+                                <View className="bg-border-gray rounded-full w-12 h-1" />
                             </View>
 
-                            <View className="flex-row justify-center items-center px-6 pb-4 border-[#4A5568] border-b">
+                            <View className="flex-row justify-center items-center px-6 pb-4 border-border-gray border-b">
                                 <Text className="font-semibold text-white text-lg text-center">
                                     {editingVehicle
                                         ? "Edit vehicle"
@@ -128,7 +128,7 @@ export default function VehicleFormModal({
                                         value={modelName}
                                         onChangeText={onModelNameChange}
                                         placeholder="EVO 200"
-                                        className="pb-3 border-[#4A5568] border-b text-[#4CAF50] text-base"
+                                        className="pb-3 border-border-gray border-b text-[#4CAF50] text-base"
                                         placeholderTextColor="#9BA1A6"
                                     />
                                 </View>
@@ -149,7 +149,7 @@ export default function VehicleFormModal({
                                                     connector.id
                                                 )
                                                     ? "bg-[#4CAF50] border-[#4CAF50]"
-                                                    : "bg-transparent border-[#4A5568]"
+                                                    : "bg-transparent border-border-gray"
                                                     }`}
                                                 activeOpacity={0.7}
                                             >
