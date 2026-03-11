@@ -3,6 +3,7 @@ import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import ListItemCard from "@/components/ui/ListItemCard";
 import { Vehicle } from "@/components/setting_page/VehicleCard";
+import { AppColors } from "@/constants/theme";
 
 export interface SelectVehicleCardProps {
     vehicle: Vehicle;
@@ -19,7 +20,7 @@ export default function SelectVehicleCard({
         <TouchableOpacity activeOpacity={0.7} onPress={() => onSelect(vehicle.id)}>
             <ListItemCard
                 icon={
-                    <MaterialIcons name="electric-bike" size={22} color="#00A452" />
+                    <MaterialIcons name="electric-bike" size={22} color={AppColors.secondary} />
                 }
                 title={vehicle.brand}
                 titleClassName="text-secondary font-semibold text-base"

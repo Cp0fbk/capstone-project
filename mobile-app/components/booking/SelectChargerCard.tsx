@@ -3,6 +3,7 @@ import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import ListItemCard from "@/components/ui/ListItemCard";
 import { Charger, ConnectorType, ChargerPort } from "@/data/chargers";
+import { AppColors } from "@/constants/theme";
 
 // Map connector type → icon name
 const connectorIconMap: Record<ConnectorType, React.ComponentProps<typeof MaterialCommunityIcons>["name"]> = {
@@ -40,7 +41,7 @@ export default function SelectChargerCard({
                     <MaterialCommunityIcons
                         name={iconName}
                         size={30}
-                        color={port.status === "AVAILABLE" ? "#00A452" : "#9BA1A6"}
+                        color={port.status === "AVAILABLE" ? AppColors.secondary : AppColors.textSecondary}
                     />
                 }
                 title={`${charger.name} - Port ${port.portNumber}`}

@@ -32,9 +32,9 @@ export default function SelectChargerPage() {
 
     const handleContinue = () => {
         if (!selectedPortId) return;
-        // TODO: Navigate to next booking step
-        // router.push(`/booking/confirm?stationId=${stationId}&vehicleId=${vehicleId}&portId=${selectedPortId}`);
-        router.back();
+        router.push(
+            `/booking/selectTime?stationId=${stationId}&vehicleId=${vehicleId}&portId=${selectedPortId}`
+        );
     };
 
     return (
