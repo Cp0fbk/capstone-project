@@ -122,7 +122,7 @@ export default function VehicleFormModal({
                                 {/* Model Name Input */}
                                 <View className="mt-4">
                                     <Text className="mb-1 text-[#9BA1A6] text-sm">
-                                        Vehicle name
+                                        Vehicle name*
                                     </Text>
                                     <TextInput
                                         value={modelName}
@@ -136,7 +136,7 @@ export default function VehicleFormModal({
                                 {/* Connector Types */}
                                 <View className="mt-4">
                                     <Text className="mb-3 text-[#9BA1A6] text-sm">
-                                        Connector Types
+                                        Connector Types*
                                     </Text>
                                     <View className="flex-row flex-wrap gap-2">
                                         {availableConnectors.map((connector) => (

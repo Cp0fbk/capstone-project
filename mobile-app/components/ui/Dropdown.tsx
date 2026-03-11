@@ -73,7 +73,7 @@ export default function Dropdown({
                     onPress={() => setIsOpen(false)}
                 >
                     <TouchableOpacity activeOpacity={1}>
-                        <View className="bg-[#333739] pt-2 pb-8 rounded-t-3xl">
+                        <View className="bg-surface pt-2 pb-8 rounded-t-3xl">
                             {/* Swipe Indicator */}
                             <View className="items-center mb-4">
                                 <View className="bg-border-gray rounded-full w-12 h-1" />
