@@ -1,15 +1,11 @@
 import SelectVehicleCard from "@/components/booking/SelectVehicleCard";
 import AppHeader from "@/components/ui/AppHeader";
+import Button from "@/components/ui/Button";
 import { mockVehicles } from "@/data/vehicles";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import {
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
-} from "react-native";
+import { ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SelectVehiclePage() {
@@ -50,17 +46,15 @@ export default function SelectVehiclePage() {
 
                 {/* Continue Button */}
                 <View className="px-6 pb-8">
-                    <TouchableOpacity
-                        activeOpacity={0.8}
-                        onPress={handleContinue}
+                    <Button
+                        variant="primary"
+                        size="lg"
+                        fullWidth
                         disabled={!selectedId}
-                        className={`py-4 rounded-full items-center ${selectedId ? "bg-secondary" : "bg-secondary/40"
-                            }`}
+                        onPress={handleContinue}
                     >
-                        <Text className="text-white font-semibold text-base">
-                            Continue
-                        </Text>
-                    </TouchableOpacity>
+                        Continue
+                    </Button>
                 </View>
             </SafeAreaView>
         </LinearGradient>
