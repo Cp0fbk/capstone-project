@@ -17,9 +17,7 @@ export default function SelectVehiclePage() {
 
     const handleContinue = () => {
         if (!selectedId) return;
-        // TODO: Navigate to next booking step (e.g. select charger or confirm)
-        // router.push(`/booking/confirm?stationId=${stationId}&vehicleId=${selectedId}`);
-        router.back();
+        router.push(`/booking/selectCharger?stationId=${stationId}&vehicleId=${selectedId}`);
     };
 
     return (
