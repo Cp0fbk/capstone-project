@@ -45,7 +45,7 @@ export default function SelectVehiclePage() {
                 </ScrollView>
 
                 {/* Continue Button */}
-                <View className="px-6 pb-8">
+                <View className="px-6 pt-6">
                     <Button
                         variant="primary"
                         size="lg"

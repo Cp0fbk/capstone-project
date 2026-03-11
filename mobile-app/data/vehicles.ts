@@ -31,4 +31,23 @@ export const mockVehicles: Vehicle[] = [
         modelName: "S",
         connectorTypes: ["Home Plug"],
     },
+    {
+        id: "6",
+        brand: "PEGA",
+        modelName: "S",
+        connectorTypes: ["Home Plug"],
+    },
+    {
+        id: "7",
+        brand: "PEGA",
+        modelName: "S",
+        connectorTypes: ["Home Plug"],
+    },
+    {
+        id: "8",
+        brand: "PEGA",
+        modelName: "S",
+        connectorTypes: ["Home Plug"],
+    },
+
 ];
