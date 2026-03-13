@@ -16,6 +16,130 @@ import java.util.Optional;
  */
 public interface StationRepository extends JpaRepository<Station, Long> {
 
+    // ==================== METADATA QUERIES ====================
+
+    /**
+     * Returns the minimum powerOutput (max_power) across all chargers.
+     * Used to populate the power-range filter metadata.
+     */
+    @Query(value = "SELECT MIN(c.max_power) FROM chargers c", nativeQuery = true)
+    Double findMinPowerOutput();
+
+    /**
+     * Returns the maximum powerOutput (max_power) across all chargers.
+     * Used to populate the power-range filter metadata.
+     */
+    @Query(value = "SELECT MAX(c.max_power) FROM chargers c", nativeQuery = true)
+    Double findMaxPowerOutput();
+
+    /**
+     * Returns a distinct, sorted list of all connector types present in the chargers table.
+     * Returns strings (not enums) to avoid direct dependency on the charger module's enum.
+     */
+    @Query(value = "SELECT DISTINCT c.connector_type FROM chargers c ORDER BY c.connector_type", nativeQuery = true)
+    List<String> findDistinctConnectorTypes();
+
+    // ==================== DYNAMIC FILTER QUERY ====================
+
+    /**
+     * Filters stations by the optional predicates: minPower, maxPower, status.
+     * Called when no connectorTypes filter is provided.
+     * Charger-related filters use correlated EXISTS subqueries to preserve module boundaries.
+     *
+     * @param minPower optional minimum charger power (kW); null = no filter
+     * @param maxPower optional maximum charger power (kW); null = no filter
+     * @param status   optional station status string; null = show ACTIVE + INACTIVE
+     * @return List of StationProjection matching the filters
+     */
+    @Query(value = """
+            SELECT
+                s.id                    AS id,
+                s.owner_id              AS ownerId,
+                s.name                  AS name,
+                s.description           AS description,
+                s.address               AS address,
+                s.latitude              AS latitude,
+                s.longitude             AS longitude,
+                s.rate                  AS rate,
+                s.status                AS status,
+                s.is_flagged_low_quality AS isFlaggedLowQuality,
+                s.created_at            AS createdAt,
+                s.updated_at            AS updatedAt,
+                NULL::double precision  AS distance,
+                (SELECT COUNT(*) FROM chargers c WHERE c.station_id = s.id)                             AS totalChargersCount,
+                (SELECT COUNT(*) FROM chargers c WHERE c.station_id = s.id AND c.status = 'AVAILABLE') AS availableChargersCount
+            FROM stations s
+            WHERE s.deleted_at IS NULL
+              AND (CAST(:status AS TEXT) IS NULL OR s.status = CAST(:status AS TEXT))
+              AND (CAST(:status AS TEXT) IS NOT NULL OR s.status IN ('ACTIVE', 'INACTIVE'))
+              AND (:minPower IS NULL OR EXISTS (
+                      SELECT 1 FROM chargers c
+                      WHERE c.station_id = s.id AND c.max_power >= :minPower
+                  ))
+              AND (:maxPower IS NULL OR EXISTS (
+                      SELECT 1 FROM chargers c
+                      WHERE c.station_id = s.id AND c.max_power <= :maxPower
+                  ))
+            ORDER BY s.created_at DESC
+            """, nativeQuery = true)
+    List<StationProjection> findFilteredStations(
+            @Param("minPower") Double minPower,
+            @Param("maxPower") Double maxPower,
+            @Param("status") String status);
+
+    /**
+     * Filters stations by the optional predicates: minPower, maxPower, status, AND connectorTypes.
+     * Called only when connectorTypes is non-null and non-empty.
+     * Splits from the simpler variant to avoid SpEL null-collection issues in native SQL.
+     *
+     * @param minPower       optional minimum charger power (kW); null = no filter
+     * @param maxPower       optional maximum charger power (kW); null = no filter
+     * @param connectorTypes required non-empty list of connector type strings
+     * @param status         optional station status string; null = show ACTIVE + INACTIVE
+     * @return List of StationProjection matching the filters
+     */
+    @Query(value = """
+            SELECT
+                s.id                    AS id,
+                s.owner_id              AS ownerId,
+                s.name                  AS name,
+                s.description           AS description,
+                s.address               AS address,
+                s.latitude              AS latitude,
+                s.longitude             AS longitude,
+                s.rate                  AS rate,
+                s.status                AS status,
+                s.is_flagged_low_quality AS isFlaggedLowQuality,
+                s.created_at            AS createdAt,
+                s.updated_at            AS updatedAt,
+                NULL::double precision  AS distance,
+                (SELECT COUNT(*) FROM chargers c WHERE c.station_id = s.id)                             AS totalChargersCount,
+                (SELECT COUNT(*) FROM chargers c WHERE c.station_id = s.id AND c.status = 'AVAILABLE') AS availableChargersCount
+            FROM stations s
+            WHERE s.deleted_at IS NULL
+              AND (CAST(:status AS TEXT) IS NULL OR s.status = CAST(:status AS TEXT))
+              AND (CAST(:status AS TEXT) IS NOT NULL OR s.status IN ('ACTIVE', 'INACTIVE'))
+              AND (:minPower IS NULL OR EXISTS (
+                      SELECT 1 FROM chargers c
+                      WHERE c.station_id = s.id AND c.max_power >= :minPower
+                  ))
+              AND (:maxPower IS NULL OR EXISTS (
+                      SELECT 1 FROM chargers c
+                      WHERE c.station_id = s.id AND c.max_power <= :maxPower
+                  ))
+              AND EXISTS (
+                      SELECT 1 FROM chargers c
+                      WHERE c.station_id = s.id
+                        AND c.connector_type IN (:connectorTypes)
+                  )
+            ORDER BY s.created_at DESC
+            """, nativeQuery = true)
+    List<StationProjection> findFilteredStationsWithConnectors(
+            @Param("minPower") Double minPower,
+            @Param("maxPower") Double maxPower,
+            @Param("connectorTypes") List<String> connectorTypes,
+            @Param("status") String status);
+
     List<Station> findByOwnerIdAndDeletedAtIsNull(Long ownerId);
 
     boolean existsByNameAndOwnerIdAndDeletedAtIsNull(String name, Long ownerId);
