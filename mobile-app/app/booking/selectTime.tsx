@@ -32,9 +32,7 @@ export default function SelectTimePage() {
     }));
 
     const handleContinue = () => {
-        // TODO: Final confirmation or payment screen
-        // router.push(`/booking/confirm?stationId=${stationId}&vehicleId=${vehicleId}&portId=${portId}&date=${selectedDate}&time=${arrivalTime}&duration=${duration}`);
-        router.back();
+        router.push(`/booking/confirm?stationId=${stationId}&vehicleId=${vehicleId}&portId=${portId}&date=${selectedDate}&time=${arrivalTime}&duration=${duration}`);
     };
 
     return (
