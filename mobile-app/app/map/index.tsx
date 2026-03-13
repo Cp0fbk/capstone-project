@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { View, Text, TouchableOpacity, TextInput, FlatList, ActivityIndicator } from "react-native";
 import MapView, { Polyline } from "react-native-maps";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -14,6 +14,8 @@ import StationMarker from "@/components/map/StationMarker";
 import NavigationInfo from "@/components/map/NavigationInfo";
 import { useMapLogic } from "@/hooks/useMapLogic";
 import { useStationCache } from "@/stores/stationCacheStore";
+import FilterBottomSheet from "@/components/map/FilterBottomSheet";
+import { StationFilterRequest } from "@/types/station.types";
 
 /**
  * MapScreen - Pure UI Component
@@ -29,6 +31,8 @@ import { useStationCache } from "@/stores/stationCacheStore";
  */
 export default function MapScreen() {
     const mapLogic = useMapLogic();
+    const [showFilterSheet, setShowFilterSheet] = useState(false);
+    const [activeFilters, setActiveFilters] = useState<StationFilterRequest>();
 
     // Memoize markers with smart state logic
     const markers = useMemo(
@@ -85,8 +89,9 @@ export default function MapScreen() {
                         <TouchableOpacity
                             className="w-12 h-12 bg-secondary rounded-full items-center justify-center shadow-lg"
                             activeOpacity={0.7}
+                            onPress={() => setShowFilterSheet(true)}
                         >
-                            <Ionicons name="options" size={24} color="#FFF" />
+                            <Ionicons name="options" size={24} color={activeFilters ? "#00A452" : "#FFF"} />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -231,6 +236,16 @@ export default function MapScreen() {
                 visible={mapLogic.showManualInput}
                 onClose={() => mapLogic.setShowPermissionModal(false)}
                 onLocationSet={mapLogic.handleManualLocationSet}
+            />
+
+            <FilterBottomSheet
+                visible={showFilterSheet}
+                onClose={() => setShowFilterSheet(false)}
+                initialFilters={activeFilters}
+                onApply={(filters) => {
+                    setActiveFilters(filters);
+                    console.log("Applied Filters:", filters);
+                }}
             />
         </GradientBackground>
     );

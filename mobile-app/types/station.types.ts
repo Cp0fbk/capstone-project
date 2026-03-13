@@ -6,6 +6,7 @@
 export enum StationStatus {
     ACTIVE = "ACTIVE",
     INACTIVE = "INACTIVE",
+    SUSPENDED = "SUSPENDED",
 }
 
 export interface ChargerSummary {
@@ -80,3 +81,19 @@ export interface ApiResponse<T> {
 
 // Props for marker status
 export type MarkerStatus = "available" | "occupied";
+
+// Filter Types
+export interface FilterMetadata {
+    minPower: number;
+    maxPower: number;
+    connectorTypes: string[];
+    statuses: StationStatus[] | string[];
+}
+
+export interface StationFilterRequest {
+    minPower?: number;
+    maxPower?: number;
+    connectorTypes?: string[];
+    statuses?: string[];
+}
+
