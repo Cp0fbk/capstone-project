@@ -1,6 +1,6 @@
 import React from "react";
 import { LinearGradient, LinearGradientProps } from "expo-linear-gradient";
-import { ColorValue } from "react-native";
+import { ColorValue, TouchableWithoutFeedback, Keyboard, View } from "react-native";
 import { cssInterop } from "nativewind";
 import { GRADIENTS, GradientKey, DEFAULT_GRADIENT } from "@/constants/gradients";
 
@@ -60,7 +60,11 @@ export default function GradientBackground({
             className={className}
             {...props}
         >
-            {children}
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+                <View className="flex-1">
+                    {children}
+                </View>
+            </TouchableWithoutFeedback>
         </LinearGradient>
     );
 }
