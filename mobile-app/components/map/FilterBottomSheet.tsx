@@ -176,11 +176,11 @@ export default function FilterBottomSheet({
                 <View className="mb-6">
                     <Text className="text-secondary font-semibold text-base mb-3">Connector Types</Text>
                     <View className="flex-row flex-wrap gap-2">
-                        {safeMeta.connectorTypes.map((type) => {
+                        {Array.from(new Set(safeMeta.connectorTypes)).map((type) => {
                             const details = getConnectorDetails(type);
                             return (
                                 <Chip
-                                    key={type}
+                                    key={`conn-${type}`}
                                     label={details.label}
                                     icon={details.icon}
                                     selected={selectedConnectors.includes(type)}
@@ -195,9 +195,9 @@ export default function FilterBottomSheet({
                 <View className="mb-8">
                     <Text className="text-secondary font-semibold text-base mb-3">Status</Text>
                     <View className="flex-row flex-wrap gap-2">
-                        {safeMeta.statuses.map((status) => (
+                        {Array.from(new Set(safeMeta.statuses)).map((status) => (
                             <Chip
-                                key={status as string}
+                                key={`status-${status}`}
                                 label={getStatusLabel(status as string)}
                                 selected={selectedStatuses.includes(status as string)}
                                 onPress={() => toggleStatus(status as string)}

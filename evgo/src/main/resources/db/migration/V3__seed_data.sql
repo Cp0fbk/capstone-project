@@ -504,7 +504,52 @@ INSERT INTO ports (id, charger_id, port_number, status) VALUES
 (269, 113, 1, 'AVAILABLE'),
 (270, 113, 2, 'AVAILABLE');
 
+-- Opening Hours (24/7 for 1-10, 07:00-21:00 for 11-20)
+INSERT INTO station_opening_hours (id, station_id, day_of_week, open_time, close_time, is_open) VALUES
+-- Station 1
+(1, 1, 'MONDAY', NULL, NULL, true), (2, 1, 'TUESDAY', NULL, NULL, true), (3, 1, 'WEDNESDAY', NULL, NULL, true), (4, 1, 'THURSDAY', NULL, NULL, true), (5, 1, 'FRIDAY', NULL, NULL, true), (6, 1, 'SATURDAY', NULL, NULL, true), (7, 1, 'SUNDAY', NULL, NULL, true),
+-- Station 2
+(8, 2, 'MONDAY', NULL, NULL, true), (9, 2, 'TUESDAY', NULL, NULL, true), (10, 2, 'WEDNESDAY', NULL, NULL, true), (11, 2, 'THURSDAY', NULL, NULL, true), (12, 2, 'FRIDAY', NULL, NULL, true), (13, 2, 'SATURDAY', NULL, NULL, true), (14, 2, 'SUNDAY', NULL, NULL, true),
+-- Station 3
+(15, 3, 'MONDAY', NULL, NULL, true), (16, 3, 'TUESDAY', NULL, NULL, true), (17, 3, 'WEDNESDAY', NULL, NULL, true), (18, 3, 'THURSDAY', NULL, NULL, true), (19, 3, 'FRIDAY', NULL, NULL, true), (20, 3, 'SATURDAY', NULL, NULL, true), (21, 3, 'SUNDAY', NULL, NULL, true),
+-- Station 4
+(22, 4, 'MONDAY', NULL, NULL, true), (23, 4, 'TUESDAY', NULL, NULL, true), (24, 4, 'WEDNESDAY', NULL, NULL, true), (25, 4, 'THURSDAY', NULL, NULL, true), (26, 4, 'FRIDAY', NULL, NULL, true), (27, 4, 'SATURDAY', NULL, NULL, true), (28, 4, 'SUNDAY', NULL, NULL, true),
+-- Station 5
+(29, 5, 'MONDAY', NULL, NULL, true), (30, 5, 'TUESDAY', NULL, NULL, true), (31, 5, 'WEDNESDAY', NULL, NULL, true), (32, 5, 'THURSDAY', NULL, NULL, true), (33, 5, 'FRIDAY', NULL, NULL, true), (34, 5, 'SATURDAY', NULL, NULL, true), (35, 5, 'SUNDAY', NULL, NULL, true),
+-- Station 6
+(36, 6, 'MONDAY', NULL, NULL, true), (37, 6, 'TUESDAY', NULL, NULL, true), (38, 6, 'WEDNESDAY', NULL, NULL, true), (39, 6, 'THURSDAY', NULL, NULL, true), (40, 6, 'FRIDAY', NULL, NULL, true), (41, 6, 'SATURDAY', NULL, NULL, true), (42, 6, 'SUNDAY', NULL, NULL, true),
+-- Station 7
+(43, 7, 'MONDAY', NULL, NULL, true), (44, 7, 'TUESDAY', NULL, NULL, true), (45, 7, 'WEDNESDAY', NULL, NULL, true), (46, 7, 'THURSDAY', NULL, NULL, true), (47, 7, 'FRIDAY', NULL, NULL, true), (48, 7, 'SATURDAY', NULL, NULL, true), (49, 7, 'SUNDAY', NULL, NULL, true),
+-- Station 8
+(50, 8, 'MONDAY', NULL, NULL, true), (51, 8, 'TUESDAY', NULL, NULL, true), (52, 8, 'WEDNESDAY', NULL, NULL, true), (53, 8, 'THURSDAY', NULL, NULL, true), (54, 8, 'FRIDAY', NULL, NULL, true), (55, 8, 'SATURDAY', NULL, NULL, true), (56, 8, 'SUNDAY', NULL, NULL, true),
+-- Station 9
+(57, 9, 'MONDAY', NULL, NULL, true), (58, 9, 'TUESDAY', NULL, NULL, true), (59, 9, 'WEDNESDAY', NULL, NULL, true), (60, 9, 'THURSDAY', NULL, NULL, true), (61, 9, 'FRIDAY', NULL, NULL, true), (62, 9, 'SATURDAY', NULL, NULL, true), (63, 9, 'SUNDAY', NULL, NULL, true),
+-- Station 10
+(64, 10, 'MONDAY', NULL, NULL, true), (65, 10, 'TUESDAY', NULL, NULL, true), (66, 10, 'WEDNESDAY', NULL, NULL, true), (67, 10, 'THURSDAY', NULL, NULL, true), (68, 10, 'FRIDAY', NULL, NULL, true), (69, 10, 'SATURDAY', NULL, NULL, true), (70, 10, 'SUNDAY', NULL, NULL, true),
+-- Station 11
+(71, 11, 'MONDAY', '07:00:00', '21:00:00', true), (72, 11, 'TUESDAY', '07:00:00', '21:00:00', true), (73, 11, 'WEDNESDAY', '07:00:00', '21:00:00', true), (74, 11, 'THURSDAY', '07:00:00', '21:00:00', true), (75, 11, 'FRIDAY', '07:00:00', '21:00:00', true), (76, 11, 'SATURDAY', '07:00:00', '21:00:00', true), (77, 11, 'SUNDAY', '07:00:00', '21:00:00', true),
+-- Station 12
+(78, 12, 'MONDAY', '07:00:00', '21:00:00', true), (79, 12, 'TUESDAY', '07:00:00', '21:00:00', true), (80, 12, 'WEDNESDAY', '07:00:00', '21:00:00', true), (81, 12, 'THURSDAY', '07:00:00', '21:00:00', true), (82, 12, 'FRIDAY', '07:00:00', '21:00:00', true), (83, 12, 'SATURDAY', '07:00:00', '21:00:00', true), (84, 12, 'SUNDAY', '07:00:00', '21:00:00', true),
+-- Station 13
+(85, 13, 'MONDAY', '07:00:00', '21:00:00', true), (86, 13, 'TUESDAY', '07:00:00', '21:00:00', true), (87, 13, 'WEDNESDAY', '07:00:00', '21:00:00', true), (88, 13, 'THURSDAY', '07:00:00', '21:00:00', true), (89, 13, 'FRIDAY', '07:00:00', '21:00:00', true), (90, 13, 'SATURDAY', '07:00:00', '21:00:00', true), (91, 13, 'SUNDAY', '07:00:00', '21:00:00', true),
+-- Station 14
+(92, 14, 'MONDAY', '07:00:00', '21:00:00', true), (93, 14, 'TUESDAY', '07:00:00', '21:00:00', true), (94, 14, 'WEDNESDAY', '07:00:00', '21:00:00', true), (95, 14, 'THURSDAY', '07:00:00', '21:00:00', true), (96, 14, 'FRIDAY', '07:00:00', '21:00:00', true), (97, 14, 'SATURDAY', '07:00:00', '21:00:00', true), (98, 14, 'SUNDAY', '07:00:00', '21:00:00', true),
+-- Station 15
+(99, 15, 'MONDAY', '07:00:00', '21:00:00', true), (100, 15, 'TUESDAY', '07:00:00', '21:00:00', true), (101, 15, 'WEDNESDAY', '07:00:00', '21:00:00', true), (102, 15, 'THURSDAY', '07:00:00', '21:00:00', true), (103, 15, 'FRIDAY', '07:00:00', '21:00:00', true), (104, 15, 'SATURDAY', '07:00:00', '21:00:00', true), (105, 15, 'SUNDAY', '07:00:00', '21:00:00', true),
+-- Station 16
+(106, 16, 'MONDAY', '07:00:00', '21:00:00', true), (107, 16, 'TUESDAY', '07:00:00', '21:00:00', true), (108, 16, 'WEDNESDAY', '07:00:00', '21:00:00', true), (109, 16, 'THURSDAY', '07:00:00', '21:00:00', true), (110, 16, 'FRIDAY', '07:00:00', '21:00:00', true), (111, 16, 'SATURDAY', '07:00:00', '21:00:00', true), (112, 16, 'SUNDAY', '07:00:00', '21:00:00', true),
+-- Station 17
+(113, 17, 'MONDAY', '07:00:00', '21:00:00', true), (114, 17, 'TUESDAY', '07:00:00', '21:00:00', true), (115, 17, 'WEDNESDAY', '07:00:00', '21:00:00', true), (116, 17, 'THURSDAY', '07:00:00', '21:00:00', true), (117, 17, 'FRIDAY', '07:00:00', '21:00:00', true), (118, 17, 'SATURDAY', '07:00:00', '21:00:00', true), (119, 17, 'SUNDAY', '07:00:00', '21:00:00', true),
+-- Station 18
+(120, 18, 'MONDAY', '07:00:00', '21:00:00', true), (121, 18, 'TUESDAY', '07:00:00', '21:00:00', true), (122, 18, 'WEDNESDAY', '07:00:00', '21:00:00', true), (123, 18, 'THURSDAY', '07:00:00', '21:00:00', true), (124, 18, 'FRIDAY', '07:00:00', '21:00:00', true), (125, 18, 'SATURDAY', '07:00:00', '21:00:00', true), (126, 18, 'SUNDAY', '07:00:00', '21:00:00', true),
+-- Station 19
+(127, 19, 'MONDAY', '07:00:00', '21:00:00', true), (128, 19, 'TUESDAY', '07:00:00', '21:00:00', true), (129, 19, 'WEDNESDAY', '07:00:00', '21:00:00', true), (130, 19, 'THURSDAY', '07:00:00', '21:00:00', true), (131, 19, 'FRIDAY', '07:00:00', '21:00:00', true), (132, 19, 'SATURDAY', '07:00:00', '21:00:00', true), (133, 19, 'SUNDAY', '07:00:00', '21:00:00', true),
+-- Station 20
+(134, 20, 'MONDAY', '07:00:00', '21:00:00', true), (135, 20, 'TUESDAY', '07:00:00', '21:00:00', true), (136, 20, 'WEDNESDAY', '07:00:00', '21:00:00', true), (137, 20, 'THURSDAY', '07:00:00', '21:00:00', true), (138, 20, 'FRIDAY', '07:00:00', '21:00:00', true), (139, 20, 'SATURDAY', '07:00:00', '21:00:00', true), (140, 20, 'SUNDAY', '07:00:00', '21:00:00', true)
+ON CONFLICT (id) DO NOTHING;
+
 -- Final touches: Update sequences
 SELECT setval('stations_id_seq', (SELECT MAX(id) FROM stations));
 SELECT setval('chargers_id_seq', (SELECT MAX(id) FROM chargers));
 SELECT setval('ports_id_seq', (SELECT MAX(id) FROM ports));
+SELECT setval('station_opening_hours_id_seq', (SELECT MAX(id) FROM station_opening_hours));

@@ -125,6 +125,7 @@ export const useMapLogic = (): UseMapLogicReturn => {
     const abortControllerRef = useRef<AbortController | null>(null);
     const initialRegionRef = useRef<Region>(INITIAL_REGION);
     const locationWatcherRef = useRef<Location.LocationSubscription | null>(null);
+    const listAbortControllerRef = useRef<AbortController | null>(null);
 
     // ==================== INITIALIZATION ====================
     useEffect(() => {
@@ -500,8 +501,20 @@ export const useMapLogic = (): UseMapLogicReturn => {
      * Independent of the map region. Only relies on applied filters and search query.
      */
     const fetchListStations = async (page: number, filters?: StationFilterParams) => {
-        if (isListLoading) return;
+        // Cancel previous request to prevent race conditions
+        if (listAbortControllerRef.current) {
+            console.log(`[fetchListStations] Cancelling previous list request for new page ${page}`);
+            listAbortControllerRef.current.abort();
+        }
+
+        // Only block if we're NOT fetching Page 0 (which might be a refetch with location)
+        if (isListLoading && page !== 0) return;
+        
         setIsListLoading(true);
+        
+        // Create new controller for this request
+        const controller = new AbortController();
+        listAbortControllerRef.current = controller;
         
         try {
             // Update active filters if provided
@@ -523,23 +536,36 @@ export const useMapLogic = (): UseMapLogicReturn => {
             
             console.log(`[fetchListStations] passing params:`, JSON.stringify(params));
             
-            const paginatedResponse = await filterStations(params);
+            const paginatedResponse = await filterStations(params, controller.signal);
             
             console.log(`[fetchListStations] page ${page} returned ${paginatedResponse.content?.length} stations`);
 
             if (page === 0) {
                 setListStations(paginatedResponse.content || []);
             } else {
-                setListStations(prev => [...prev, ...paginatedResponse.content]);
+                setListStations(prev => {
+                    const existingIds = new Set(prev.map(s => s.id));
+                    const newUniqueItems = (paginatedResponse.content || []).filter(
+                        s => !existingIds.has(s.id)
+                    );
+                    return [...prev, ...newUniqueItems];
+                });
             }
 
             setListPage(page);
             setHasMoreList(!paginatedResponse.last);
             
-        } catch (error) {
+        } catch (error: any) {
+            if (error.name === 'CanceledError' || error.name === 'AbortError') {
+                console.log(`[fetchListStations] Request for page ${page} was cancelled`);
+                return; // Don't reset loading state if we're already starting another one
+            }
             console.error("Error fetching list stations:", error);
         } finally {
-            setIsListLoading(false);
+            // Only reset loading if this is still the active controller
+            if (listAbortControllerRef.current === controller) {
+                setIsListLoading(false);
+            }
         }
     };
 
