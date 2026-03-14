@@ -60,7 +60,10 @@ export default function GradientBackground({
             className={className}
             {...props}
         >
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+            <TouchableWithoutFeedback 
+                onPress={Keyboard.dismiss} 
+                accessible={false}
+            >
                 <View className="flex-1">
                     {children}
                 </View>

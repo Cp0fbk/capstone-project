@@ -57,8 +57,8 @@ export default function HomePage() {
     };
 
     return (
-        <GradientBackground className="flex-1 px-6 pt-6">
-            <SafeAreaView className="flex-1">
+        <GradientBackground className="flex-1 px-6">
+            <SafeAreaView className="flex-1" edges={["top", "left", "right"]}>
                 <View>
                     <Text style={styles.h3}>EVGo</Text>
                     <Text style={[styles.h3, { marginTop: 20 }]}>

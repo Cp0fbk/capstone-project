@@ -7,6 +7,7 @@ import {
 } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useRef, useState } from "react";
+import GradientBackground from "@/components/ui/GradientBackground";
 import {
     Animated,
     Dimensions,
@@ -105,13 +106,8 @@ export default function ChargingPage() {
     }, []);
 
     return (
-        <LinearGradient
-            colors={["#33404F", "#000000"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 0, y: 1 }}
-            className="flex-1 px-6 pt-6"
-        >
-            <SafeAreaView className="flex-1">
+        <GradientBackground className="flex-1 px-6">
+            <SafeAreaView className="flex-1" edges={["top", "left", "right"]}>
                 {/* Main Content */}
                 <View className="flex-1 pt-8">
                     {/* Circular Progress */}
@@ -294,6 +290,6 @@ export default function ChargingPage() {
                     </View>
                 </View>
             </SafeAreaView>
-        </LinearGradient>
+        </GradientBackground>
     );
 }

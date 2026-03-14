@@ -5,6 +5,7 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { Button, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useIsFocused } from "@react-navigation/native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function QrScanPage() {
     const [facing, setFacing] = useState<CameraType>("back");
@@ -45,7 +46,7 @@ export default function QrScanPage() {
         <View style={{ flex: 1, backgroundColor: "black" }}>
             {isFocused && (
                 <CameraView
-                    style={styles.camera}
+                    style={[styles.camera, { flex: 1 }]}
                     facing={facing}
                     enableTorch={flashMode === "on"}
                     barcodeScannerSettings={{
@@ -54,32 +55,34 @@ export default function QrScanPage() {
                     onBarcodeScanned={handleBarCodeScanned}
                 >
                     {/* Header */}
-                    <View style={styles.header}>
-                        <TouchableOpacity
-                            style={styles.headerButton}
-                            onPress={() => router.back()}
-                        >
-                            <Ionicons name="close" size={22} color="#333" />
-                        </TouchableOpacity>
-                        <View style={styles.headerRight}>
-                            <TouchableOpacity onPress={toggleFlash}>
-                                <Ionicons
-                                    name={
-                                        flashMode === "on" ? "flash" : "flash-outline"
-                                    }
-                                    size={22}
-                                    color="white"
-                                />
+                    <SafeAreaView edges={["top", "left", "right"]}>
+                        <View style={styles.header}>
+                            <TouchableOpacity
+                                style={styles.headerButton}
+                                onPress={() => router.back()}
+                            >
+                                <Ionicons name="close" size={22} color="#333" />
                             </TouchableOpacity>
-                            <TouchableOpacity>
-                                <Feather
-                                    name="more-horizontal"
-                                    size={24}
-                                    color="white"
-                                />
-                            </TouchableOpacity>
+                            <View style={styles.headerRight}>
+                                <TouchableOpacity onPress={toggleFlash}>
+                                    <Ionicons
+                                        name={
+                                            flashMode === "on" ? "flash" : "flash-outline"
+                                        }
+                                        size={22}
+                                        color="white"
+                                    />
+                                </TouchableOpacity>
+                                <TouchableOpacity>
+                                    <Feather
+                                        name="more-horizontal"
+                                        size={24}
+                                        color="white"
+                                    />
+                                </TouchableOpacity>
+                            </View>
                         </View>
-                    </View>
+                    </SafeAreaView>
 
                     {/* Scan Area */}
                     <View style={styles.overlay}>
@@ -121,8 +124,6 @@ const styles = StyleSheet.create({
     },
     camera: {
         flex: 1,
-        paddingTop: 30,
-        paddingBottom: 40,
     },
     header: {
         flexDirection: "row",
