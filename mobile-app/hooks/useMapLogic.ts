@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import * as Location from "expo-location";
 import MapView, { Region } from "react-native-maps";
 import { router } from "expo-router";
-import { searchStationsInBound, filterStations } from "@/apis/stationApi/stationApi";
-import { StationSearchResult, StationFilterParams } from "@/types/station.types";
+import { searchStationsInBound, filterStations, getStationMetadata } from "@/apis/stationApi/stationApi";
+import { StationSearchResult, StationFilterParams, FilterMetadata } from "@/types/station.types";
 import { getRoute } from "@/apis/stationApi/directionApi";
 import mapboxPolyline from "@mapbox/polyline";
 import { haversineDistance, simplifyPolyline } from "@/utils/location";
@@ -34,6 +34,9 @@ export interface UseMapLogicReturn {
     isListLoading: boolean;
     fetchListStations: (page: number, filters?: StationFilterParams) => Promise<void>;
     loadMoreListStations: () => void;
+
+    // Metadata
+    filterMeta: FilterMetadata | null;
 
     // Modals
     showPermissionModal: boolean;
@@ -112,6 +115,9 @@ export const useMapLogic = (): UseMapLogicReturn => {
     // Track active filters for the list to pass when loading more
     const activeFiltersRef = useRef<StationFilterParams>({});
 
+    // ==================== METADATA STATE ====================
+    const [filterMeta, setFilterMeta] = useState<FilterMetadata | null>(null);
+
     // ==================== REFS ====================
     const mapRef = useRef<MapView>(null);
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -125,10 +131,23 @@ export const useMapLogic = (): UseMapLogicReturn => {
         checkLocationPermission();
         // Load stations immediately with default region
         fetchStationsInBound(initialRegionRef.current);
-        // Load initial list stations globally
-        fetchListStations(0);
+        
+        // Fetch metadata
+        getStationMetadata()
+            .then((data) => setFilterMeta(data))
+            .catch((error) => console.error("Error fetching station metadata:", error));
+            
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // ==================== INITIAL LIST FETCH ====================
+    // We wait for location to be available (or default to null) before fetching
+    // the initial list so that distance can be calculated correctly on the backend.
+    useEffect(() => {
+        // Fetch list as long as it's not already loading
+        fetchListStations(0);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [location]);
 
     // ==================== SYNC LOCATION TO GLOBAL STORE ====================
     // Whenever location changes in map, sync it to global store for home screen
@@ -492,12 +511,18 @@ export const useMapLogic = (): UseMapLogicReturn => {
 
             // Always merge searchQuery with active filters
             const params: StationFilterParams = {
-                ...activeFiltersRef.current,
-                query: searchQuery || undefined,
                 page,
-                size: 10, // Adjust page size as needed
+                size: 10,
+                query: searchQuery || undefined,
+                ...activeFiltersRef.current,
+                ...(location?.coords && {
+                    userLat: location.coords.latitude,
+                    userLng: location.coords.longitude
+                })
             };
-
+            
+            console.log(`[fetchListStations] passing params:`, JSON.stringify(params));
+            
             const paginatedResponse = await filterStations(params);
             
             console.log(`[fetchListStations] page ${page} returned ${paginatedResponse.content?.length} stations`);
@@ -788,6 +813,7 @@ export const useMapLogic = (): UseMapLogicReturn => {
         handleBook,
         setViewMode,
         setSearchQuery,
+        filterMeta,
 
         // Refs
         mapRef,

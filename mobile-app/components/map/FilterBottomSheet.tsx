@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { View, Text, ScrollView, Dimensions } from "react-native";
 import MultiSlider from "@ptomasroos/react-native-multi-slider";
 import { StationFilterParams, StationStatus, FilterMetadata } from "@/types/station.types";
-import { mockFilterMetaData } from "@/data/filterMeta";
 import Modal from "@/components/ui/Modal";
 import Chip from "@/components/ui/Chip";
 import Button from "@/components/ui/Button";
@@ -12,6 +11,7 @@ interface FilterBottomSheetProps {
     onClose: () => void;
     onApply: (filters: StationFilterParams) => void;
     initialFilters?: StationFilterParams;
+    meta: FilterMetadata | null;
 }
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -22,12 +22,20 @@ export default function FilterBottomSheet({
     onClose,
     onApply,
     initialFilters,
+    meta,
 }: FilterBottomSheetProps) {
-    const meta: FilterMetadata = mockFilterMetaData.data;
+
+    // Safety fallback
+    const safeMeta: FilterMetadata = meta || {
+        minPower: 0,
+        maxPower: 150,
+        connectorTypes: [],
+        statuses: [StationStatus.ACTIVE]
+    };
 
     const [powerRange, setPowerRange] = useState<number[]>([
-        initialFilters?.minPower ?? meta.minPower,
-        initialFilters?.maxPower ?? meta.maxPower,
+        initialFilters?.minPower ?? safeMeta.minPower,
+        initialFilters?.maxPower ?? safeMeta.maxPower,
     ]);
     const [selectedConnectors, setSelectedConnectors] = useState<string[]>(
         initialFilters?.connectorTypes ?? []
@@ -40,24 +48,24 @@ export default function FilterBottomSheet({
     useEffect(() => {
         if (visible) {
             setPowerRange([
-                initialFilters?.minPower ?? meta.minPower,
-                initialFilters?.maxPower ?? meta.maxPower,
+                initialFilters?.minPower ?? safeMeta.minPower,
+                initialFilters?.maxPower ?? safeMeta.maxPower,
             ]);
             setSelectedStatuses(initialFilters?.status ? [initialFilters.status as string] : [StationStatus.ACTIVE]);
         }
-    }, [visible, initialFilters]);
+    }, [visible, initialFilters, safeMeta]);
 
     // Quick Select handler
     const handleQuickPowerSelect = (type: "ac" | "dc" | "uf") => {
         switch (type) {
             case "ac":
-                setPowerRange([meta.minPower, 22]);
+                setPowerRange([safeMeta.minPower, 22]);
                 break;
             case "dc":
                 setPowerRange([22, 60]);
                 break;
             case "uf":
-                setPowerRange([60, meta.maxPower]);
+                setPowerRange([60, safeMeta.maxPower]);
                 break;
         }
     };
@@ -89,7 +97,7 @@ export default function FilterBottomSheet({
     };
 
     const handleClear = () => {
-        setPowerRange([meta.minPower, meta.maxPower]);
+        setPowerRange([safeMeta.minPower, safeMeta.maxPower]);
         setSelectedConnectors([]);
         setSelectedStatuses([StationStatus.ACTIVE]);
     };
@@ -117,15 +125,18 @@ export default function FilterBottomSheet({
             variant="bottom-sheet"
             title="Filter Stations"
         >
-            <ScrollView className="max-h-[85%]" showsVerticalScrollIndicator={false}>
+            <ScrollView className="max-h-[85vh] px-4" showsVerticalScrollIndicator={false}>
                 {/* Power Output Section */}
-                <View className="mb-6 bg-surface">
-                    <Text className="text-secondary font-semibold text-base mb-3">Power Output (kW)</Text>
+                <View className="mb-6">
+                    <Text className="text-secondary font-semibold text-base mb-2">Power Output</Text>
+                    {/* <Text className="text-text-secondary text-sm mb-4">
+                        {powerRange[0]} kW - {powerRange[1] === safeMeta.maxPower ? `${safeMeta.maxPower}+` : powerRange[1]} kW
+                    </Text> */}
 
                     <View className="flex-row flex-wrap gap-2 mb-4">
                         <Chip
                             label="AC (< 22kW)"
-                            selected={powerRange[0] === meta.minPower && powerRange[1] === 22}
+                            selected={powerRange[0] === safeMeta.minPower && powerRange[1] === 22}
                             onPress={() => handleQuickPowerSelect("ac")}
                         />
                         <Chip
@@ -135,16 +146,16 @@ export default function FilterBottomSheet({
                         />
                         <Chip
                             label="Ultra-Fast (> 60kW)"
-                            selected={powerRange[0] === 60 && powerRange[1] === meta.maxPower}
+                            selected={powerRange[0] === 60 && powerRange[1] === safeMeta.maxPower}
                             onPress={() => handleQuickPowerSelect("uf")}
                         />
                     </View>
 
                     <View className="items-center w-full px-2">
                         <MultiSlider
-                            values={[powerRange[0], powerRange[1]]}
-                            min={meta.minPower}
-                            max={meta.maxPower}
+                            values={powerRange}
+                            min={safeMeta.minPower}
+                            max={safeMeta.maxPower}
                             step={1}
                             onValuesChange={(values) => setPowerRange(values)}
                             selectedStyle={{ backgroundColor: "#00A452" }}
@@ -155,8 +166,8 @@ export default function FilterBottomSheet({
                             snapped
                         />
                         <View className="w-full flex-row justify-between -mt-2">
-                            <Text className="text-text-secondary text-sm font-medium">{powerRange[0]} kW</Text>
-                            <Text className="text-text-secondary text-sm font-medium">{powerRange[1]} kW</Text>
+                            <Text className="text-text-secondary text-sm font-medium">{safeMeta.minPower} kW</Text>
+                            <Text className="text-text-secondary text-sm font-medium">{safeMeta.maxPower} kW</Text>
                         </View>
                     </View>
                 </View>
@@ -165,7 +176,7 @@ export default function FilterBottomSheet({
                 <View className="mb-6">
                     <Text className="text-secondary font-semibold text-base mb-3">Connector Types</Text>
                     <View className="flex-row flex-wrap gap-2">
-                        {meta.connectorTypes.map((type) => {
+                        {safeMeta.connectorTypes.map((type) => {
                             const details = getConnectorDetails(type);
                             return (
                                 <Chip
@@ -184,7 +195,7 @@ export default function FilterBottomSheet({
                 <View className="mb-8">
                     <Text className="text-secondary font-semibold text-base mb-3">Status</Text>
                     <View className="flex-row flex-wrap gap-2">
-                        {meta.statuses.map((status) => (
+                        {safeMeta.statuses.map((status) => (
                             <Chip
                                 key={status as string}
                                 label={getStatusLabel(status as string)}

@@ -65,7 +65,11 @@ public interface StationRepository extends JpaRepository<Station, Long> {
                 s.is_flagged_low_quality AS isFlaggedLowQuality,
                 s.created_at            AS createdAt,
                 s.updated_at            AS updatedAt,
-                NULL::double precision  AS distance,
+                CASE
+                    WHEN CAST(:userLat AS float8) IS NOT NULL AND CAST(:userLng AS float8) IS NOT NULL
+                    THEN s.location::geography <-> ST_SetSRID(ST_MakePoint(CAST(:userLng AS float8), CAST(:userLat AS float8)), 4326)::geography
+                    ELSE NULL::double precision
+                END  AS distance,
                 (SELECT COUNT(*) FROM chargers c WHERE c.station_id = s.id)                             AS totalChargersCount,
                 (SELECT COUNT(*) FROM chargers c WHERE c.station_id = s.id AND c.status = 'AVAILABLE') AS availableChargersCount
             FROM stations s
@@ -83,7 +87,13 @@ public interface StationRepository extends JpaRepository<Station, Long> {
               AND (:query IS NULL OR 
                    LOWER(s.name) LIKE LOWER(CONCAT('%', CAST(:query AS TEXT), '%')) OR 
                    LOWER(s.address) LIKE LOWER(CONCAT('%', CAST(:query AS TEXT), '%')))
-            ORDER BY s.created_at DESC
+            ORDER BY 
+                CASE
+                    WHEN CAST(:userLat AS float8) IS NOT NULL AND CAST(:userLng AS float8) IS NOT NULL
+                    THEN s.location::geography <-> ST_SetSRID(ST_MakePoint(CAST(:userLng AS float8), CAST(:userLat AS float8)), 4326)::geography
+                    ELSE NULL
+                END NULLS LAST,
+                s.created_at DESC
             """, countQuery = """
             SELECT COUNT(s.id)
             FROM stations s
@@ -107,6 +117,8 @@ public interface StationRepository extends JpaRepository<Station, Long> {
             @Param("maxPower") Double maxPower,
             @Param("status") String status,
             @Param("query") String query,
+            @Param("userLat") Double userLat,
+            @Param("userLng") Double userLng,
             Pageable pageable);
 
     /**
@@ -134,7 +146,11 @@ public interface StationRepository extends JpaRepository<Station, Long> {
                 s.is_flagged_low_quality AS isFlaggedLowQuality,
                 s.created_at            AS createdAt,
                 s.updated_at            AS updatedAt,
-                NULL::double precision  AS distance,
+                CASE
+                    WHEN CAST(:userLat AS float8) IS NOT NULL AND CAST(:userLng AS float8) IS NOT NULL
+                    THEN s.location::geography <-> ST_SetSRID(ST_MakePoint(CAST(:userLng AS float8), CAST(:userLat AS float8)), 4326)::geography
+                    ELSE NULL::double precision
+                END  AS distance,
                 (SELECT COUNT(*) FROM chargers c WHERE c.station_id = s.id)                             AS totalChargersCount,
                 (SELECT COUNT(*) FROM chargers c WHERE c.station_id = s.id AND c.status = 'AVAILABLE') AS availableChargersCount
             FROM stations s
@@ -157,7 +173,13 @@ public interface StationRepository extends JpaRepository<Station, Long> {
                       WHERE c.station_id = s.id
                         AND c.connector_type IN (:connectorTypes)
                   )
-            ORDER BY s.created_at DESC
+            ORDER BY 
+                CASE
+                    WHEN CAST(:userLat AS float8) IS NOT NULL AND CAST(:userLng AS float8) IS NOT NULL
+                    THEN s.location::geography <-> ST_SetSRID(ST_MakePoint(CAST(:userLng AS float8), CAST(:userLat AS float8)), 4326)::geography
+                    ELSE NULL
+                END NULLS LAST,
+                s.created_at DESC
             """, countQuery = """
             SELECT COUNT(s.id)
             FROM stations s
@@ -187,6 +209,8 @@ public interface StationRepository extends JpaRepository<Station, Long> {
             @Param("connectorTypes") List<String> connectorTypes,
             @Param("status") String status,
             @Param("query") String query,
+            @Param("userLat") Double userLat,
+            @Param("userLng") Double userLng,
             Pageable pageable);
 
     List<Station> findByOwnerIdAndDeletedAtIsNull(Long ownerId);
@@ -333,9 +357,9 @@ public interface StationRepository extends JpaRepository<Station, Long> {
                 s.created_at AS createdAt,
                 s.updated_at AS updatedAt,
                 CASE
-                    WHEN :userLat IS NOT NULL AND :userLng IS NOT NULL
-                    THEN s.location::geography <-> ST_SetSRID(ST_MakePoint(:userLng, :userLat), 4326)::geography
-                    ELSE NULL
+                    WHEN CAST(:userLat AS float8) IS NOT NULL AND CAST(:userLng AS float8) IS NOT NULL
+                    THEN s.location::geography <-> ST_SetSRID(ST_MakePoint(CAST(:userLng AS float8), CAST(:userLat AS float8)), 4326)::geography
+                    ELSE NULL::double precision
                 END AS distance,
                 (SELECT COUNT(*) FROM chargers c WHERE c.station_id = s.id) AS totalChargersCount,
                 (SELECT COUNT(*) FROM chargers c WHERE c.station_id = s.id AND c.status = 'AVAILABLE') AS availableChargersCount

@@ -104,14 +104,14 @@ class StationFilterServiceTest {
         @DisplayName("Should return all active+inactive stations when no filter params are provided")
         void filterStations_NoParams_ReturnsAll() {
             // Given
-            StationFilterRequest request = new StationFilterRequest(null, null, null, null, null, null, null);
+            StationFilterRequest request = new StationFilterRequest(null, null, null, null, null, null, null, null, null);
 
             StationProjection projection = mock(StationProjection.class);
             List<StationProjection> projections = List.of(projection);
             Page<StationProjection> page = new PageImpl<>(projections, PageRequest.of(0, 10), 1);
 
             // No connectorTypes → dispatches to findFilteredStations
-            when(stationRepository.findFilteredStations(eq(null), eq(null), eq(null), eq(null), any(Pageable.class)))
+            when(stationRepository.findFilteredStations(eq(null), eq(null), eq(null), eq(null), eq(null), eq(null), any(Pageable.class)))
                     .thenReturn(page);
             when(stationDtoConverter.convertToSearchResults(projections))
                     .thenReturn(List.of(StationSearchResult.builder().id(1L).name("Station A").build()));
@@ -121,21 +121,21 @@ class StationFilterServiceTest {
 
             // Then
             assertThat(result.content()).hasSize(1);
-            verify(stationRepository).findFilteredStations(eq(null), eq(null), eq(null), eq(null), any(Pageable.class));
-            verify(stationRepository, never()).findFilteredStationsWithConnectors(any(), any(), any(), any(), any(), any());
+            verify(stationRepository).findFilteredStations(eq(null), eq(null), eq(null), eq(null), eq(null), eq(null), any(Pageable.class));
+            verify(stationRepository, never()).findFilteredStationsWithConnectors(any(), any(), any(), any(), any(), any(), any(), any());
         }
 
         @Test
         @DisplayName("Should filter only by status when only status is provided")
         void filterStations_WithStatus_ReturnsFiltered() {
             // Given
-            StationFilterRequest request = new StationFilterRequest(null, null, null, StationStatus.ACTIVE, null, null, null);
+            StationFilterRequest request = new StationFilterRequest(null, null, null, StationStatus.ACTIVE, null, null, null, null, null);
 
             StationProjection projection = mock(StationProjection.class);
             List<StationProjection> projections = List.of(projection);
             Page<StationProjection> page = new PageImpl<>(projections, PageRequest.of(0, 10), 1);
 
-            when(stationRepository.findFilteredStations(eq(null), eq(null), eq("ACTIVE"), eq(null), any(Pageable.class)))
+            when(stationRepository.findFilteredStations(eq(null), eq(null), eq("ACTIVE"), eq(null), eq(null), eq(null), any(Pageable.class)))
                     .thenReturn(page);
             when(stationDtoConverter.convertToSearchResults(projections))
                     .thenReturn(List.of(StationSearchResult.builder().id(1L).name("Active Station").build()));
@@ -145,21 +145,21 @@ class StationFilterServiceTest {
 
             // Then
             assertThat(result.content()).hasSize(1);
-            verify(stationRepository).findFilteredStations(eq(null), eq(null), eq("ACTIVE"), eq(null), any(Pageable.class));
-            verify(stationRepository, never()).findFilteredStationsWithConnectors(any(), any(), any(), any(), any(), any());
+            verify(stationRepository).findFilteredStations(eq(null), eq(null), eq("ACTIVE"), eq(null), eq(null), eq(null), any(Pageable.class));
+            verify(stationRepository, never()).findFilteredStationsWithConnectors(any(), any(), any(), any(), any(), any(), any(), any());
         }
 
         @Test
         @DisplayName("Should filter by power range using the simple (no-connector) query")
         void filterStations_WithPowerRange_ReturnsFiltered() {
             // Given
-            StationFilterRequest request = new StationFilterRequest(3.0, 22.0, null, null, null, null, null);
+            StationFilterRequest request = new StationFilterRequest(3.0, 22.0, null, null, null, null, null, null, null);
 
             StationProjection projection = mock(StationProjection.class);
             List<StationProjection> projections = List.of(projection);
             Page<StationProjection> page = new PageImpl<>(projections, PageRequest.of(0, 10), 1);
 
-            when(stationRepository.findFilteredStations(eq(3.0), eq(22.0), eq(null), eq(null), any(Pageable.class)))
+            when(stationRepository.findFilteredStations(eq(3.0), eq(22.0), eq(null), eq(null), eq(null), eq(null), any(Pageable.class)))
                     .thenReturn(page);
             when(stationDtoConverter.convertToSearchResults(projections))
                     .thenReturn(List.of(StationSearchResult.builder().id(2L).name("Power Station").build()));
@@ -169,7 +169,7 @@ class StationFilterServiceTest {
 
             // Then
             assertThat(result.content()).hasSize(1);
-            verify(stationRepository).findFilteredStations(eq(3.0), eq(22.0), eq(null), eq(null), any(Pageable.class));
+            verify(stationRepository).findFilteredStations(eq(3.0), eq(22.0), eq(null), eq(null), eq(null), eq(null), any(Pageable.class));
         }
 
         @Test
@@ -177,14 +177,14 @@ class StationFilterServiceTest {
         void filterStations_WithConnectorTypes_ReturnsFiltered() {
             // Given
             List<String> connectorTypes = List.of("IEC_TYPE_2", "VINFAST_STD");
-            StationFilterRequest request = new StationFilterRequest(null, null, connectorTypes, null, null, null, null);
+            StationFilterRequest request = new StationFilterRequest(null, null, connectorTypes, null, null, null, null, null, null);
 
             StationProjection projection = mock(StationProjection.class);
             List<StationProjection> projections = List.of(projection);
             Page<StationProjection> page = new PageImpl<>(projections, PageRequest.of(0, 10), 1);
 
             // Has connectorTypes → dispatches to findFilteredStationsWithConnectors
-            when(stationRepository.findFilteredStationsWithConnectors(eq(null), eq(null), eq(connectorTypes), eq(null), eq(null), any(Pageable.class)))
+            when(stationRepository.findFilteredStationsWithConnectors(eq(null), eq(null), eq(connectorTypes), eq(null), eq(null), eq(null), eq(null), any(Pageable.class)))
                     .thenReturn(page);
             when(stationDtoConverter.convertToSearchResults(projections))
                     .thenReturn(List.of(StationSearchResult.builder().id(3L).name("Type2 Station").build()));
@@ -194,8 +194,8 @@ class StationFilterServiceTest {
 
             // Then
             assertThat(result.content()).hasSize(1);
-            verify(stationRepository).findFilteredStationsWithConnectors(eq(null), eq(null), eq(connectorTypes), eq(null), eq(null), any(Pageable.class));
-            verify(stationRepository, never()).findFilteredStations(any(), any(), any(), any(), any());
+            verify(stationRepository).findFilteredStationsWithConnectors(eq(null), eq(null), eq(connectorTypes), eq(null), eq(null), eq(null), eq(null), any(Pageable.class));
+                verify(stationRepository, never()).findFilteredStations(any(), any(), any(), any(), any(), any(), any());
         }
 
         @Test
@@ -203,13 +203,13 @@ class StationFilterServiceTest {
         void filterStations_AllParams_ReturnsFiltered() {
             // Given
             List<String> connectorTypes = List.of("IEC_TYPE_2");
-            StationFilterRequest request = new StationFilterRequest(3.0, 22.0, connectorTypes, StationStatus.ACTIVE, null, null, "Hanoi");
+            StationFilterRequest request = new StationFilterRequest(3.0, 22.0, connectorTypes, StationStatus.ACTIVE, null, null, "Hanoi", null, null);
 
             StationProjection projection = mock(StationProjection.class);
             List<StationProjection> projections = List.of(projection);
             Page<StationProjection> page = new PageImpl<>(projections, PageRequest.of(0, 10), 1);
 
-            when(stationRepository.findFilteredStationsWithConnectors(eq(3.0), eq(22.0), eq(connectorTypes), eq("ACTIVE"), eq("Hanoi"), any(Pageable.class)))
+            when(stationRepository.findFilteredStationsWithConnectors(eq(3.0), eq(22.0), eq(connectorTypes), eq("ACTIVE"), eq("Hanoi"), eq(null), eq(null), any(Pageable.class)))
                     .thenReturn(page);
             when(stationDtoConverter.convertToSearchResults(projections))
                     .thenReturn(List.of(StationSearchResult.builder().id(5L).name("Best Match").build()));
@@ -220,17 +220,17 @@ class StationFilterServiceTest {
             // Then
             assertThat(result.content()).hasSize(1);
             assertThat(result.content().get(0).name()).isEqualTo("Best Match");
-            verify(stationRepository).findFilteredStationsWithConnectors(eq(3.0), eq(22.0), eq(connectorTypes), eq("ACTIVE"), eq("Hanoi"), any(Pageable.class));
+            verify(stationRepository).findFilteredStationsWithConnectors(eq(3.0), eq(22.0), eq(connectorTypes), eq("ACTIVE"), eq("Hanoi"), eq(null), eq(null), any(Pageable.class));
         }
 
         @Test
         @DisplayName("Should return empty list when no stations match the filter")
         void filterStations_NoMatch_ReturnsEmptyList() {
             // Given
-            StationFilterRequest request = new StationFilterRequest(999.0, 9999.0, null, null, null, null, null);
+            StationFilterRequest request = new StationFilterRequest(999.0, 9999.0, null, null, null, null, null, null, null);
             Page<StationProjection> page = new PageImpl<>(List.of(), PageRequest.of(0, 10), 0);
 
-            when(stationRepository.findFilteredStations(eq(999.0), eq(9999.0), eq(null), eq(null), any(Pageable.class)))
+            when(stationRepository.findFilteredStations(eq(999.0), eq(9999.0), eq(null), eq(null), eq(null), eq(null), any(Pageable.class)))
                     .thenReturn(page);
             when(stationDtoConverter.convertToSearchResults(List.of()))
                     .thenReturn(List.of());
@@ -246,14 +246,14 @@ class StationFilterServiceTest {
         @DisplayName("Should treat empty connectorTypes list as null (uses simple query, no connector filter)")
         void filterStations_EmptyConnectorTypes_TreatsAsNullFilter() {
             // Given — empty list should be normalised to null before calling the repo
-            StationFilterRequest request = new StationFilterRequest(null, null, List.of(), null, null, null, null);
+            StationFilterRequest request = new StationFilterRequest(null, null, List.of(), null, null, null, null, null, null);
 
             StationProjection projection = mock(StationProjection.class);
             List<StationProjection> projections = List.of(projection);
             Page<StationProjection> page = new PageImpl<>(projections, PageRequest.of(0, 10), 1);
 
             // Empty list → normalised to null → uses findFilteredStations (not the connector variant)
-            when(stationRepository.findFilteredStations(eq(null), eq(null), eq(null), eq(null), any(Pageable.class)))
+            when(stationRepository.findFilteredStations(eq(null), eq(null), eq(null), eq(null), eq(null), eq(null), any(Pageable.class)))
                     .thenReturn(page);
             when(stationDtoConverter.convertToSearchResults(projections))
                     .thenReturn(List.of(StationSearchResult.builder().id(1L).build()));
@@ -263,8 +263,8 @@ class StationFilterServiceTest {
 
             // Then
             assertThat(result.content()).hasSize(1);
-            verify(stationRepository).findFilteredStations(eq(null), eq(null), eq(null), eq(null), any(Pageable.class));
-            verify(stationRepository, never()).findFilteredStationsWithConnectors(any(), any(), any(), any(), any(), any());
+            verify(stationRepository).findFilteredStations(eq(null), eq(null), eq(null), eq(null), eq(null), eq(null), any(Pageable.class));
+            verify(stationRepository, never()).findFilteredStationsWithConnectors(any(), any(), any(), any(), any(), any(), any(), any());
         }
     }
 }

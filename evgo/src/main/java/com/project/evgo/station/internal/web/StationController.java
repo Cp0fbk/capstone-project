@@ -211,11 +211,13 @@ public class StationController {
 			@Parameter(description = "List of connector type values (e.g. IEC_TYPE_2, VINFAST_STD)") @RequestParam(required = false) List<String> connectorTypes,
 			@Parameter(description = "Station status (ACTIVE, INACTIVE, PENDING, SUSPENDED)") @RequestParam(required = false) StationStatus status,
 			@Parameter(description = "Search query by name or address") @RequestParam(required = false) String query,
+			@Parameter(description = "User latitude for distance calculation") @RequestParam(required = false) Double userLat,
+			@Parameter(description = "User longitude for distance calculation") @RequestParam(required = false) Double userLng,
 			@Parameter(description = "Page number (0-based)") @RequestParam(defaultValue = "0") Integer page,
 			@Parameter(description = "Page size") @RequestParam(defaultValue = "10") Integer size) {
 
 		StationFilterRequest request = new StationFilterRequest(minPower, maxPower, connectorTypes, status, page, size,
-				query);
+				query, userLat, userLng);
 		PageResponse<StationSearchResult> results = stationService.filterStations(request);
 
 		String message = String.format("Found %d station(s)", results.totalElements());

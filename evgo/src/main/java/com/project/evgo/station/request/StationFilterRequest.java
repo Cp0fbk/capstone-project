@@ -16,6 +16,7 @@ public record StationFilterRequest(
         StationStatus status,
         Integer page,
         Integer size,
-        String query
-) {
+        String query,
+        Double userLat,
+        Double userLng) {
 }

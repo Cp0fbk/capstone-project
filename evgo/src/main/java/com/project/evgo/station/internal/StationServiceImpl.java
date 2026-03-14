@@ -258,8 +258,9 @@ public class StationServiceImpl implements StationService {
         Double maxPower = stationRepository.findMaxPowerOutput();
         List<String> connectorTypes = stationRepository.findDistinctConnectorTypes();
 
-        // Collect all StationStatus enum values as strings for the frontend
+        // Collect all StationStatus enum values as strings for the frontend, excluding PENDING
         List<String> statuses = Arrays.stream(StationStatus.values())
+                .filter(status -> status != StationStatus.PENDING)
                 .map(Enum::name)
                 .collect(Collectors.toList());
 
@@ -293,6 +294,8 @@ public class StationServiceImpl implements StationService {
                     connectorTypes,
                     statusStr,
                     request.query(),
+                    request.userLat(),
+                    request.userLng(),
                     pageable
             );
         } else {
@@ -301,6 +304,8 @@ public class StationServiceImpl implements StationService {
                     request.maxPower(),
                     statusStr,
                     request.query(),
+                    request.userLat(),
+                    request.userLng(),
                     pageable
             );
         }

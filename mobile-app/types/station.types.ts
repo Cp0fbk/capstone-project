@@ -106,7 +106,8 @@ export interface StationFilterParams {
     connectorTypes?: string[];
     status?: string | StationStatus;
     query?: string;
+    userLat?: number;
+    userLng?: number;
     page?: number;
     size?: number;
 }
-

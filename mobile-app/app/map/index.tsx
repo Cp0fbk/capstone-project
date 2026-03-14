@@ -15,7 +15,7 @@ import NavigationInfo from "@/components/map/NavigationInfo";
 import { useMapLogic } from "@/hooks/useMapLogic";
 import { useStationCache } from "@/stores/stationCacheStore";
 import FilterBottomSheet from "@/components/map/FilterBottomSheet";
-import { StationFilterParams } from "@/types/station.types";
+import { StationFilterParams, StationStatus } from "@/types/station.types";
 
 /**
  * MapScreen - Pure UI Component
@@ -33,6 +33,17 @@ export default function MapScreen() {
     const mapLogic = useMapLogic();
     const [showFilterSheet, setShowFilterSheet] = useState(false);
     const [activeFilters, setActiveFilters] = useState<StationFilterParams>();
+
+    // Check if there are actual non-default filters applied
+    const hasActiveFilters = useMemo(() => {
+        if (!activeFilters || !mapLogic.filterMeta) return false;
+        const meta = mapLogic.filterMeta;
+        if (activeFilters.minPower !== undefined && activeFilters.minPower > meta.minPower) return true;
+        if (activeFilters.maxPower !== undefined && activeFilters.maxPower < meta.maxPower) return true;
+        if (activeFilters.connectorTypes && activeFilters.connectorTypes.length > 0) return true;
+        if (activeFilters.status && activeFilters.status !== StationStatus.ACTIVE) return true;
+        return false;
+    }, [activeFilters, mapLogic.filterMeta]);
 
     // Memoize markers with smart state logic
     const markers = useMemo(
@@ -97,7 +108,7 @@ export default function MapScreen() {
                             activeOpacity={0.7}
                             onPress={() => setShowFilterSheet(true)}
                         >
-                            <Ionicons name="options" size={24} color={activeFilters ? "#00A452" : "#FFF"} />
+                            <Ionicons name="options" size={24} color={hasActiveFilters ? "#035c1cff" : "#FFF"} />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -257,6 +268,7 @@ export default function MapScreen() {
                 visible={showFilterSheet}
                 onClose={() => setShowFilterSheet(false)}
                 initialFilters={activeFilters}
+                meta={mapLogic.filterMeta}
                 onApply={(filters) => {
                     setActiveFilters(filters);
                     // Refetch list when filters change
