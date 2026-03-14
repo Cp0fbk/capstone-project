@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, ScrollView, Dimensions } from "react-native";
 import MultiSlider from "@ptomasroos/react-native-multi-slider";
-import { StationFilterRequest, StationStatus, FilterMetadata } from "@/types/station.types";
+import { StationFilterParams, StationStatus, FilterMetadata } from "@/types/station.types";
 import { mockFilterMetaData } from "@/data/filterMeta";
 import Modal from "@/components/ui/Modal";
 import Chip from "@/components/ui/Chip";
@@ -10,8 +10,8 @@ import Button from "@/components/ui/Button";
 interface FilterBottomSheetProps {
     visible: boolean;
     onClose: () => void;
-    onApply: (filters: StationFilterRequest) => void;
-    initialFilters?: StationFilterRequest;
+    onApply: (filters: StationFilterParams) => void;
+    initialFilters?: StationFilterParams;
 }
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -33,7 +33,7 @@ export default function FilterBottomSheet({
         initialFilters?.connectorTypes ?? []
     );
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>(
-        initialFilters?.statuses ?? [StationStatus.ACTIVE]
+        initialFilters?.status ? [initialFilters.status as string] : [StationStatus.ACTIVE]
     );
 
     // Reset when modal opens
@@ -43,8 +43,7 @@ export default function FilterBottomSheet({
                 initialFilters?.minPower ?? meta.minPower,
                 initialFilters?.maxPower ?? meta.maxPower,
             ]);
-            setSelectedConnectors(initialFilters?.connectorTypes ?? []);
-            setSelectedStatuses(initialFilters?.statuses ?? [StationStatus.ACTIVE]);
+            setSelectedStatuses(initialFilters?.status ? [initialFilters.status as string] : [StationStatus.ACTIVE]);
         }
     }, [visible, initialFilters]);
 
@@ -84,7 +83,7 @@ export default function FilterBottomSheet({
             minPower: powerRange[0],
             maxPower: powerRange[1],
             connectorTypes: selectedConnectors,
-            statuses: selectedStatuses,
+            status: selectedStatuses.length > 0 ? selectedStatuses[0] : undefined,
         });
         onClose();
     };

@@ -11,6 +11,7 @@ import com.project.evgo.station.request.UpdateStationRequest;
 import com.project.evgo.station.response.StationMetadataResponse;
 import com.project.evgo.station.response.StationResponse;
 import com.project.evgo.station.response.StationSearchResult;
+import com.project.evgo.sharedkernel.dto.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -188,13 +189,11 @@ public class StationController {
 				.build());
 	}
 
-	// ==================== METADATA & FILTER ENDPOINTS (PUBLIC) ====================
+	// ==================== METADATA & FILTER ENDPOINTS (PUBLIC)
+	// ====================
 
 	@GetMapping("/metadata")
-	@Operation(
-			summary = "Get station filter metadata",
-			description = "Returns power range (min/max), distinct connector types, and all station statuses needed to build the filter UI"
-	)
+	@Operation(summary = "Get station filter metadata", description = "Returns power range (min/max), distinct connector types, and all station statuses needed to build the filter UI")
 	public ResponseEntity<ApiResponse<StationMetadataResponse>> getMetadata() {
 		StationMetadataResponse result = stationService.getMetadata();
 		return ResponseEntity.ok(ApiResponse.<StationMetadataResponse>builder()
@@ -205,25 +204,22 @@ public class StationController {
 	}
 
 	@GetMapping("/filter")
-	@Operation(
-			summary = "Filter stations",
-			description = "Dynamically filter stations by power range, connector type, and/or status. All parameters are optional."
-	)
-	public ResponseEntity<ApiResponse<List<StationSearchResult>>> filterStations(
-			@Parameter(description = "Minimum charger power output in kW")
-			@RequestParam(required = false) Double minPower,
-			@Parameter(description = "Maximum charger power output in kW")
-			@RequestParam(required = false) Double maxPower,
-			@Parameter(description = "List of connector type values (e.g. IEC_TYPE_2, VINFAST_STD)")
-			@RequestParam(required = false) List<String> connectorTypes,
-			@Parameter(description = "Station status (ACTIVE, INACTIVE, PENDING, SUSPENDED)")
-			@RequestParam(required = false) StationStatus status) {
+	@Operation(summary = "Filter stations", description = "Dynamically filter stations by power range, connector type, and/or status. All parameters are optional.")
+	public ResponseEntity<ApiResponse<PageResponse<StationSearchResult>>> filterStations(
+			@Parameter(description = "Minimum charger power output in kW") @RequestParam(required = false) Double minPower,
+			@Parameter(description = "Maximum charger power output in kW") @RequestParam(required = false) Double maxPower,
+			@Parameter(description = "List of connector type values (e.g. IEC_TYPE_2, VINFAST_STD)") @RequestParam(required = false) List<String> connectorTypes,
+			@Parameter(description = "Station status (ACTIVE, INACTIVE, PENDING, SUSPENDED)") @RequestParam(required = false) StationStatus status,
+			@Parameter(description = "Search query by name or address") @RequestParam(required = false) String query,
+			@Parameter(description = "Page number (0-based)") @RequestParam(defaultValue = "0") Integer page,
+			@Parameter(description = "Page size") @RequestParam(defaultValue = "10") Integer size) {
 
-		StationFilterRequest request = new StationFilterRequest(minPower, maxPower, connectorTypes, status);
-		List<StationSearchResult> results = stationService.filterStations(request);
+		StationFilterRequest request = new StationFilterRequest(minPower, maxPower, connectorTypes, status, page, size,
+				query);
+		PageResponse<StationSearchResult> results = stationService.filterStations(request);
 
-		String message = String.format("Found %d station(s)", results.size());
-		return ResponseEntity.ok(ApiResponse.<List<StationSearchResult>>builder()
+		String message = String.format("Found %d station(s)", results.totalElements());
+		return ResponseEntity.ok(ApiResponse.<PageResponse<StationSearchResult>>builder()
 				.status(HttpStatus.OK.value())
 				.message(message)
 				.data(results)

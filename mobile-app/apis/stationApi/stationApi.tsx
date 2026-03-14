@@ -6,6 +6,8 @@ import {
     SearchInBoundParams,
     Station,
     StationSearchResult,
+    StationFilterParams,
+    PaginatedResponse,
 } from "@/types/station.types";
 
 const API_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
@@ -100,6 +102,29 @@ export const searchStationsInBound = async (
                 userLng,
                 maxResults,
             },
+            signal,
+        }
+    );
+
+    return res.data.data;
+};
+
+/**
+ * Filter stations based on various parameters including pagination and text query
+ */
+export const filterStations = async (
+    params: StationFilterParams,
+    signal?: AbortSignal
+): Promise<PaginatedResponse<StationSearchResult>> => {
+    // Clean up undefined parameters
+    const cleanParams = Object.fromEntries(
+        Object.entries(params).filter(([_, v]) => v != null)
+    );
+
+    const res = await axiosInstance.get<ApiResponse<PaginatedResponse<StationSearchResult>>>(
+        `${API_BACKEND_URL}/api/v1/stations/filter`,
+        {
+            params: cleanParams,
             signal,
         }
     );

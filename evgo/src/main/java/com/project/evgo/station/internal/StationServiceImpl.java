@@ -12,8 +12,13 @@ import com.project.evgo.station.request.UpdateStationRequest;
 import com.project.evgo.station.response.StationMetadataResponse;
 import com.project.evgo.station.response.StationResponse;
 import com.project.evgo.station.response.StationSearchResult;
+import com.project.evgo.sharedkernel.dto.PageResponse;
 import com.project.evgo.user.security.SecurityUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -267,31 +272,42 @@ public class StationServiceImpl implements StationService {
     }
 
     @Override
-    public List<StationSearchResult> filterStations(StationFilterRequest request) {
+    public PageResponse<StationSearchResult> filterStations(StationFilterRequest request) {
         // Normalise empty connectorTypes list to null — means "no filter"
         List<String> connectorTypes = (request.connectorTypes() != null && !request.connectorTypes().isEmpty())
                 ? request.connectorTypes()
                 : null;
 
         String statusStr = request.status() != null ? request.status().name() : null;
+        
+        int page = request.page() != null ? Math.max(0, request.page()) : 0;
+        int size = request.size() != null ? Math.max(1, request.size()) : 10;
+        Pageable pageable = PageRequest.of(page, size);
 
-        List<StationProjection> projections;
+        Page<StationProjection> projectionPage;
         if (connectorTypes != null) {
             // Use the variant with connector type filter (avoids SpEL null-collection issues)
-            projections = stationRepository.findFilteredStationsWithConnectors(
+            projectionPage = stationRepository.findFilteredStationsWithConnectors(
                     request.minPower(),
                     request.maxPower(),
                     connectorTypes,
-                    statusStr
+                    statusStr,
+                    request.query(),
+                    pageable
             );
         } else {
-            projections = stationRepository.findFilteredStations(
+            projectionPage = stationRepository.findFilteredStations(
                     request.minPower(),
                     request.maxPower(),
-                    statusStr
+                    statusStr,
+                    request.query(),
+                    pageable
             );
         }
 
-        return stationDtoConverter.convertToSearchResults(projections);
+        List<StationSearchResult> results = stationDtoConverter.convertToSearchResults(projectionPage.getContent());
+        Page<StationSearchResult> resultPage = new PageImpl<>(results, pageable, projectionPage.getTotalElements());
+
+        return PageResponse.of(resultPage);
     }
 }

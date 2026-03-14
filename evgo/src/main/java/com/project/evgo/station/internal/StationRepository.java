@@ -80,12 +80,34 @@ public interface StationRepository extends JpaRepository<Station, Long> {
                       SELECT 1 FROM chargers c
                       WHERE c.station_id = s.id AND c.max_power <= :maxPower
                   ))
+              AND (:query IS NULL OR 
+                   LOWER(s.name) LIKE LOWER(CONCAT('%', CAST(:query AS TEXT), '%')) OR 
+                   LOWER(s.address) LIKE LOWER(CONCAT('%', CAST(:query AS TEXT), '%')))
             ORDER BY s.created_at DESC
+            """, countQuery = """
+            SELECT COUNT(s.id)
+            FROM stations s
+            WHERE s.deleted_at IS NULL
+              AND (CAST(:status AS TEXT) IS NULL OR s.status = CAST(:status AS TEXT))
+              AND (CAST(:status AS TEXT) IS NOT NULL OR s.status IN ('ACTIVE', 'INACTIVE'))
+              AND (:minPower IS NULL OR EXISTS (
+                      SELECT 1 FROM chargers c
+                      WHERE c.station_id = s.id AND c.max_power >= :minPower
+                  ))
+              AND (:maxPower IS NULL OR EXISTS (
+                      SELECT 1 FROM chargers c
+                      WHERE c.station_id = s.id AND c.max_power <= :maxPower
+                  ))
+              AND (:query IS NULL OR 
+                   LOWER(s.name) LIKE LOWER(CONCAT('%', CAST(:query AS TEXT), '%')) OR 
+                   LOWER(s.address) LIKE LOWER(CONCAT('%', CAST(:query AS TEXT), '%')))
             """, nativeQuery = true)
-    List<StationProjection> findFilteredStations(
+    Page<StationProjection> findFilteredStations(
             @Param("minPower") Double minPower,
             @Param("maxPower") Double maxPower,
-            @Param("status") String status);
+            @Param("status") String status,
+            @Param("query") String query,
+            Pageable pageable);
 
     /**
      * Filters stations by the optional predicates: minPower, maxPower, status, AND connectorTypes.
@@ -127,18 +149,45 @@ public interface StationRepository extends JpaRepository<Station, Long> {
                       SELECT 1 FROM chargers c
                       WHERE c.station_id = s.id AND c.max_power <= :maxPower
                   ))
+              AND (:query IS NULL OR 
+                   LOWER(s.name) LIKE LOWER(CONCAT('%', CAST(:query AS TEXT), '%')) OR 
+                   LOWER(s.address) LIKE LOWER(CONCAT('%', CAST(:query AS TEXT), '%')))
               AND EXISTS (
                       SELECT 1 FROM chargers c
                       WHERE c.station_id = s.id
                         AND c.connector_type IN (:connectorTypes)
                   )
             ORDER BY s.created_at DESC
+            """, countQuery = """
+            SELECT COUNT(s.id)
+            FROM stations s
+            WHERE s.deleted_at IS NULL
+              AND (CAST(:status AS TEXT) IS NULL OR s.status = CAST(:status AS TEXT))
+              AND (CAST(:status AS TEXT) IS NOT NULL OR s.status IN ('ACTIVE', 'INACTIVE'))
+              AND (:minPower IS NULL OR EXISTS (
+                      SELECT 1 FROM chargers c
+                      WHERE c.station_id = s.id AND c.max_power >= :minPower
+                  ))
+              AND (:maxPower IS NULL OR EXISTS (
+                      SELECT 1 FROM chargers c
+                      WHERE c.station_id = s.id AND c.max_power <= :maxPower
+                  ))
+              AND (:query IS NULL OR 
+                   LOWER(s.name) LIKE LOWER(CONCAT('%', CAST(:query AS TEXT), '%')) OR 
+                   LOWER(s.address) LIKE LOWER(CONCAT('%', CAST(:query AS TEXT), '%')))
+              AND EXISTS (
+                      SELECT 1 FROM chargers c
+                      WHERE c.station_id = s.id
+                        AND c.connector_type IN (:connectorTypes)
+                  )
             """, nativeQuery = true)
-    List<StationProjection> findFilteredStationsWithConnectors(
+    Page<StationProjection> findFilteredStationsWithConnectors(
             @Param("minPower") Double minPower,
             @Param("maxPower") Double maxPower,
             @Param("connectorTypes") List<String> connectorTypes,
-            @Param("status") String status);
+            @Param("status") String status,
+            @Param("query") String query,
+            Pageable pageable);
 
     List<Station> findByOwnerIdAndDeletedAtIsNull(Long ownerId);
 

@@ -7,6 +7,7 @@ import com.project.evgo.station.request.SearchTextRequest;
 import com.project.evgo.station.request.StationFilterRequest;
 import com.project.evgo.station.request.UpdateStationRequest;
 import com.project.evgo.station.response.StationMetadataResponse;
+import com.project.evgo.sharedkernel.dto.PageResponse;
 import com.project.evgo.station.response.StationResponse;
 import com.project.evgo.station.response.StationSearchResult;
 
@@ -53,5 +54,5 @@ public interface StationService {
      * Returns filtered stations matching the optional criteria in the request.
      * Only non-null fields are applied as filters.
      */
-    List<StationSearchResult> filterStations(StationFilterRequest request);
+    PageResponse<StationSearchResult> filterStations(StationFilterRequest request);
 }

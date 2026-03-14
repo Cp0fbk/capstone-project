@@ -79,6 +79,16 @@ export interface ApiResponse<T> {
     data: T;
 }
 
+// Paginated Response Wrapper
+export interface PaginatedResponse<T> {
+    content: T[];
+    page: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+    last: boolean;
+}
+
 // Props for marker status
 export type MarkerStatus = "available" | "occupied";
 
@@ -90,10 +100,13 @@ export interface FilterMetadata {
     statuses: StationStatus[] | string[];
 }
 
-export interface StationFilterRequest {
+export interface StationFilterParams {
     minPower?: number;
     maxPower?: number;
     connectorTypes?: string[];
-    statuses?: string[];
+    status?: string | StationStatus;
+    query?: string;
+    page?: number;
+    size?: number;
 }
 

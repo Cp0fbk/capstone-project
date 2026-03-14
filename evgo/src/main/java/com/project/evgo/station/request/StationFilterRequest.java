@@ -13,6 +13,9 @@ public record StationFilterRequest(
         Double minPower,
         Double maxPower,
         List<String> connectorTypes,
-        StationStatus status
+        StationStatus status,
+        Integer page,
+        Integer size,
+        String query
 ) {
 }

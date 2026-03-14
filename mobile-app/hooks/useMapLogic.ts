@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import * as Location from "expo-location";
 import MapView, { Region } from "react-native-maps";
 import { router } from "expo-router";
-import { searchStationsInBound } from "@/apis/stationApi/stationApi";
-import { StationSearchResult } from "@/types/station.types";
+import { searchStationsInBound, filterStations } from "@/apis/stationApi/stationApi";
+import { StationSearchResult, StationFilterParams } from "@/types/station.types";
 import { getRoute } from "@/apis/stationApi/directionApi";
 import mapboxPolyline from "@mapbox/polyline";
 import { haversineDistance, simplifyPolyline } from "@/utils/location";
@@ -26,6 +26,14 @@ export interface UseMapLogicReturn {
     viewMode: "map" | "list";
     searchQuery: string;
     mapKey: number;
+
+    // List View State
+    listStations: StationSearchResult[];
+    listPage: number;
+    hasMoreList: boolean;
+    isListLoading: boolean;
+    fetchListStations: (page: number, filters?: StationFilterParams) => Promise<void>;
+    loadMoreListStations: () => void;
 
     // Modals
     showPermissionModal: boolean;
@@ -95,6 +103,15 @@ export const useMapLogic = (): UseMapLogicReturn => {
     const [searchQuery, setSearchQuery] = useState("");
     const [mapKey, setMapKey] = useState(0);
 
+    // ==================== LIST VIEW STATE ====================
+    const [listStations, setListStations] = useState<StationSearchResult[]>([]);
+    const [listPage, setListPage] = useState(0);
+    const [hasMoreList, setHasMoreList] = useState(true);
+    const [isListLoading, setIsListLoading] = useState(false);
+    
+    // Track active filters for the list to pass when loading more
+    const activeFiltersRef = useRef<StationFilterParams>({});
+
     // ==================== REFS ====================
     const mapRef = useRef<MapView>(null);
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -108,6 +125,8 @@ export const useMapLogic = (): UseMapLogicReturn => {
         checkLocationPermission();
         // Load stations immediately with default region
         fetchStationsInBound(initialRegionRef.current);
+        // Load initial list stations globally
+        fetchListStations(0);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -456,6 +475,55 @@ export const useMapLogic = (): UseMapLogicReturn => {
         }
     };
 
+    // ==================== LIST STATION FETCHING ====================
+    /**
+     * Fetch stations using the paginated `/filter` API. 
+     * Independent of the map region. Only relies on applied filters and search query.
+     */
+    const fetchListStations = async (page: number, filters?: StationFilterParams) => {
+        if (isListLoading) return;
+        setIsListLoading(true);
+        
+        try {
+            // Update active filters if provided
+            if (filters) {
+                activeFiltersRef.current = filters;
+            }
+
+            // Always merge searchQuery with active filters
+            const params: StationFilterParams = {
+                ...activeFiltersRef.current,
+                query: searchQuery || undefined,
+                page,
+                size: 10, // Adjust page size as needed
+            };
+
+            const paginatedResponse = await filterStations(params);
+            
+            console.log(`[fetchListStations] page ${page} returned ${paginatedResponse.content?.length} stations`);
+
+            if (page === 0) {
+                setListStations(paginatedResponse.content || []);
+            } else {
+                setListStations(prev => [...prev, ...paginatedResponse.content]);
+            }
+
+            setListPage(page);
+            setHasMoreList(!paginatedResponse.last);
+            
+        } catch (error) {
+            console.error("Error fetching list stations:", error);
+        } finally {
+            setIsListLoading(false);
+        }
+    };
+
+    const loadMoreListStations = () => {
+        if (!isListLoading && hasMoreList) {
+            fetchListStations(listPage + 1);
+        }
+    };
+
     /**
      * Debounced region change handler to prevent API spam
      */
@@ -693,6 +761,13 @@ export const useMapLogic = (): UseMapLogicReturn => {
         viewMode,
         searchQuery,
         mapKey,
+        
+        listStations,
+        listPage,
+        hasMoreList,
+        isListLoading,
+        fetchListStations,
+        loadMoreListStations,
 
         // Modals
         showPermissionModal,
