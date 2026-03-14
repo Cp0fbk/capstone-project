@@ -271,6 +271,8 @@ export default function MapScreen() {
                 meta={mapLogic.filterMeta}
                 onApply={(filters) => {
                     setActiveFilters(filters);
+                    // Switch to List View
+                    mapLogic.setViewMode("list");
                     // Refetch list when filters change
                     mapLogic.fetchListStations(0, filters);
                 }}
