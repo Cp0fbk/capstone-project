@@ -145,9 +145,13 @@ export default function StationDetailScreen() {
         : null;
 
     return (
-        <GradientBackground preset="main" className="flex-1">
-            <View className="flex-1">
-                <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        <GradientBackground preset="main" dismissKeyboard={false}>
+            <View style={{ flex: 1 }}>
+                <ScrollView
+                    style={{ flex: 1 }}
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                >
                     {/* Station Image - Full bleed to top including status bar */}
                     <View className="relative">
                         {imageUrl ? (

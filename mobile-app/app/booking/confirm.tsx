@@ -18,14 +18,16 @@ export default function ConfirmBookingScreen() {
     const { vehicle, station, charger, bookingDetails, price } = mockBookingReview;
 
     return (
-        <GradientBackground preset="main" className="flex-1">
-            <SafeAreaView className="flex-1">
+        <GradientBackground preset="main" dismissKeyboard={false}>
+            <SafeAreaView style={{ flex: 1 }}>
                 <AppHeader title="Review Summary" showBack />
 
                 <ScrollView
-                    className="flex-1 px-4"
+                    style={{ flex: 1 }}
+                    className="px-4"
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={{ paddingBottom: 0 }}
+                    keyboardShouldPersistTaps="handled"
                 >
                     {/* Vehicle Section */}
                     <Text className="text-white font-semibold text-base mb-2 mt-4">Vehicle</Text>
