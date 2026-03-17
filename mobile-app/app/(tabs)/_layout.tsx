@@ -17,7 +17,7 @@ const { Navigator } = createMaterialTopTabNavigator();
 const MaterialTopTabs = withLayoutContext(Navigator);
 
 export default function TabLayout() {
-    const TAB_HEIGHT = 80;
+    const TAB_HEIGHT = 50;
     const insets = useSafeAreaInsets();
 
     const CenterTabButton = ({ onPress, isFocused }: { onPress?: () => void; isFocused: boolean }) => {
@@ -33,10 +33,9 @@ export default function TabLayout() {
                     onPress={onPress}
                     style={[
                         {
-                            position: "absolute",
-                            top: 4,
                             width: 50,
                             height: 50,
+                            marginTop: 4,
                             alignItems: "center",
                             justifyContent: "center",
                             borderRadius: 30,
@@ -128,7 +127,7 @@ export default function TabLayout() {
                             testID={(options as any).tabBarTestID}
                             onPress={onPress}
                             onLongPress={onLongPress}
-                            className="flex-1 items-center justify-center py-2"
+                            className="flex-1 items-center justify-center py-2 mt-1"
                         >
                             <View className="items-center">
                                 {options.tabBarIcon && options.tabBarIcon({ color, focused: isFocused })}
