@@ -11,6 +11,10 @@ import { searchNearbyStations } from "@/apis/stationApi/stationApi";
 import { StationSearchResult, StationStatus } from "@/types/station.types";
 import { useLocationPermission } from "@/hooks/useLocationPermission";
 import { useLocationStore } from "@/stores/locationStore";
+import ChargingInfoCard from "@/components/home/ChargingInfoCard";
+import HistoryItem from "@/components/home/HistoryItem";
+import { mockChargingInfo, mockHistory } from "@/data/homeData";
+import { AppColors } from "@/constants/theme";
 
 export default function HomePage() {
     const locationPerm = useLocationPermission(true); // Auto-check on mount
@@ -160,15 +164,58 @@ export default function HomePage() {
                         )}
                     </View>
 
-                    {/* Activities */}
-                    <View>
-                        <Text style={[styles.h3, { marginTop: 30 }]}>
-                            Activities
+                    {/* Last Charging Information */}
+                    <View className="mt-8">
+                        <Text style={styles.h3}>
+                            Last Charging Information
                         </Text>
-                        <View className="flex flex-row justify-between mt-4">
-                            <View className="bg-white/10 rounded-2xl w-[64%] h-52"></View>
-                            <View className="bg-white/10 rounded-2xl w-[33%] h-52"></View>
+                        <View className="flex-row gap-3 mt-4">
+                            <ChargingInfoCard
+                                label="Percentage"
+                                value={mockChargingInfo.percentage}
+                                subValue="%"
+                                iconName="battery-check"
+                                iconColor="#8B5CF6"
+                                bgColor="rgba(139, 92, 246, 0.1)"
+                                iconBgColor="rgba(139, 92, 246, 0.2)"
+                            />
+                            <ChargingInfoCard
+                                label="kWh"
+                                value={mockChargingInfo.kwh}
+                                iconName="flash"
+                                iconColor="#F59E0B"
+                                bgColor="rgba(245, 158, 11, 0.1)"
+                                iconBgColor="rgba(245, 158, 11, 0.2)"
+                            />
+                            <ChargingInfoCard
+                                label="Total"
+                                value={`${mockChargingInfo.currency}${mockChargingInfo.total.toFixed(2).replace('.', ',')}`}
+                                iconName="currency-usd"
+                                iconColor="#10B981"
+                                bgColor="rgba(16, 185, 129, 0.1)"
+                                iconBgColor="rgba(16, 185, 129, 0.2)"
+                            />
                         </View>
+                    </View>
+
+                    {/* History */}
+                    <View className="mt-8 mb-10">
+                        <View className="flex-row items-center justify-between mb-4">
+                            <Text style={styles.h3}>History</Text>
+                            <TouchableOpacity onPress={() => console.log("See All")}>
+                                <Text className="text-text-secondary text-sm">See All</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        {mockHistory.map((item) => (
+                            <HistoryItem
+                                key={item.id}
+                                date={item.date}
+                                duration={item.duration}
+                                energy={item.energy}
+                                onPress={() => console.log("View history item", item.id)}
+                            />
+                        ))}
                     </View>
                 </View>
             </SafeAreaView>
