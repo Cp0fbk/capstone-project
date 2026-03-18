@@ -18,24 +18,19 @@ export default function ChargingPage() {
     };
 
     return (
-        <GradientBackground preset="main">
-            <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
+        <GradientBackground preset="main" dismissKeyboard={false}>
+            <SafeAreaView style={{ flex: 1 }}>
                 <AppHeader
                     title="Charging"
-                    showBack={true}
-                    onBack={() => console.log("Close")}
-                    // Using a close icon as per image
-                    right={
-                        <View className="flex-row items-center gap-4">
-                            <Ionicons name="ellipsis-horizontal-circle" size={28} color="white" />
-                        </View>
-                    }
+                    showBack
                 />
 
                 <ScrollView
                     style={{ flex: 1 }}
+                    className="px-4"
                     showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ paddingBottom: 100 }}
+                    contentContainerStyle={{ paddingBottom: 0 }}
+                    keyboardShouldPersistTaps="handled"
                 >
                     {/* Central Indicator */}
                     <ChargingIndicator
@@ -53,12 +48,13 @@ export default function ChargingPage() {
                 </ScrollView>
 
                 {/* Bottom Action Button */}
-                <View className="px-6 py-4 border-t border-white/5 bg-black/20">
+                <View className="px-6 pt-6 pb-2">
                     <Button
                         variant="primary"
                         onPress={handleStop}
-                        className="rounded-full h-16"
-                        textClassName="text-lg font-bold"
+                        className="w-full"
+                        style={{ height: 56 }}
+                        textClassName="font-semibold text-base"
                     >
                         Stop Charging
                     </Button>

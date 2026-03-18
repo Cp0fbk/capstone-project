@@ -61,7 +61,7 @@ export default function HomePage() {
     };
 
     return (
-        <GradientBackground className="flex-1 px-6">
+        <GradientBackground preset="fullDark" className="flex-1 px-6">
             <SafeAreaView className="flex-1" edges={["top", "left", "right"]}>
                 <View>
                     <Text style={styles.h3}>EVGo</Text>
@@ -70,7 +70,7 @@ export default function HomePage() {
                     </Text>
                 </View>
 
-                <View className="flex-1 bg-white/10 -mx-6 mt-8 px-6 rounded-t-[3em]">
+                <View className="flex-1 bg-[#2e2e2e] -mx-6 mt-8 px-6 rounded-t-[3em]">
                     {/* Map Preview */}
                     <View>
                         <View className="flex-row items-center justify-between">

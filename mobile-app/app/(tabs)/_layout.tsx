@@ -114,9 +114,9 @@ export default function TabLayout() {
                         );
                     }
 
-                    // For Gallery (hidden)
+                    // Hide specific routes (like ghost 'charging' or Gallery)
                     // @ts-ignore - href is provided by expo-router despite top-tab types
-                    if ((options as any).href === null) return null;
+                    if ((options as any).href === null || route.name === "charging") return null;
 
                     return (
                         <Pressable
@@ -164,12 +164,12 @@ export default function TabLayout() {
             />
 
             <MaterialTopTabs.Screen
-                name="charging"
+                name="booking"
                 options={{
-                    title: "Charging",
+                    title: "My Booking",
                     tabBarIcon: ({ color }: { color: string }) => (
-                        <MaterialIcons
-                            name="energy-savings-leaf"
+                        <MaterialCommunityIcons
+                            name="calendar-check"
                             size={26}
                             color={color}
                         />

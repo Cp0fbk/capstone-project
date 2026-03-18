@@ -1,0 +1,44 @@
+import React, { useState } from "react";
+import { View, ScrollView } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import GradientBackground from "@/components/ui/GradientBackground";
+import AppHeader from "@/components/ui/AppHeader";
+import BookingTabs from "@/components/booking/BookingTabs";
+import BookingCard from "@/components/booking/BookingCard";
+import { mockBookings, BookingStatus } from "@/data/bookingData";
+
+export default function BookingPage() {
+    const [activeTab, setActiveTab] = useState<BookingStatus>("Upcoming");
+
+    const filteredBookings = mockBookings.filter(
+        (booking) => booking.status === activeTab
+    );
+
+    return (
+        <GradientBackground preset="main">
+            <SafeAreaView className="flex-1" edges={["top", "left", "right"]}>
+                <AppHeader title="My Booking" showBack />
+
+                <BookingTabs
+                    activeTab={activeTab}
+                    onTabChange={setActiveTab}
+                />
+
+                <ScrollView
+                    className="flex-1 px-4"
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ paddingBottom: 20 }}
+                >
+                    {filteredBookings.map((booking) => (
+                        <BookingCard
+                            key={booking.id}
+                            booking={booking}
+                            onCancel={() => console.log("Cancel", booking.id)}
+                            onView={() => console.log("View", booking.id)}
+                        />
+                    ))}
+                </ScrollView>
+            </SafeAreaView>
+        </GradientBackground>
+    );
+}

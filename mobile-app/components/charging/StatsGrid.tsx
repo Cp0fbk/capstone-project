@@ -9,7 +9,7 @@ interface StatItemProps {
 }
 
 const StatItem = ({ value, label, showBorderRight, showBorderBottom }: StatItemProps) => (
-    <View 
+    <View
         className={`flex-1 p-6 items-center justify-center 
             ${showBorderRight ? 'border-r border-white/5' : ''} 
             ${showBorderBottom ? 'border-b border-white/5' : ''}`}
@@ -28,7 +28,7 @@ interface StatsGridProps {
 
 export default function StatsGrid({ time, percentage, current, fees }: StatsGridProps) {
     return (
-        <View className="bg-[#1A202C]/60 rounded-[32px] border border-white/5 overflow-hidden mx-4">
+        <View className="bg-[#1A202C]/60 rounded-[32px] border border-white/5 overflow-hidden mx-4 mt-6">
             <View className="flex-row">
                 <StatItem value={time} label="Charging Time" showBorderRight showBorderBottom />
                 <StatItem value={`${percentage}%`} label="Battery" showBorderBottom />

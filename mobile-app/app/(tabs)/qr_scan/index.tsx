@@ -73,7 +73,10 @@ export default function QrScanPage() {
                                         color="white"
                                     />
                                 </TouchableOpacity>
-                                <TouchableOpacity>
+                                <TouchableOpacity
+                                    // @ts-ignore - Dynamic route
+                                    onPress={() => router.push("/charging")}
+                                >
                                     <Feather
                                         name="more-horizontal"
                                         size={24}
