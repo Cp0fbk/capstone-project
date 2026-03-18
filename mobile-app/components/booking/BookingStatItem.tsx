@@ -10,7 +10,7 @@ interface BookingStatItemProps {
 
 const BookingStatItem = ({ label, value, icon, showBorderRight }: BookingStatItemProps) => {
     return (
-        <View 
+        <View
             className={`flex-1 items-center px-1 ${showBorderRight ? 'border-r border-white/10' : ''}`}
         >
             <Text className="text-white/40 text-[10px] mb-2 uppercase tracking-tight">
@@ -20,8 +20,8 @@ const BookingStatItem = ({ label, value, icon, showBorderRight }: BookingStatIte
                 {icon ? (
                     <View className="mb-1">{icon}</View>
                 ) : (
-                    <Text 
-                        className="text-white text-sm font-semibold text-center"
+                    <Text
+                        className="text-white text-xl font-semibold text-center"
                         numberOfLines={1}
                         adjustsFontSizeToFit
                     >

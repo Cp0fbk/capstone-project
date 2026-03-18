@@ -21,7 +21,7 @@ const BookingCard = ({ booking, onCancel, onView }: BookingCardProps) => {
             {/* Header: Date/Time + Remind Me */}
             <View className="flex-row justify-between items-start mb-4">
                 <View>
-                    <Text className="text-white text-base font-semibold mb-1">
+                    <Text className="text-white text-lg font-semibold mb-1">
                         {booking.date}
                     </Text>
                     <Text className="text-white/60 text-sm">
@@ -47,7 +47,7 @@ const BookingCard = ({ booking, onCancel, onView }: BookingCardProps) => {
             {/* Station Info */}
             <View className="flex-row justify-between items-center mb-6">
                 <View className="flex-1 mr-4">
-                    <Text className="text-white text-lg font-bold mb-1" numberOfLines={1}>
+                    <Text className="text-white text-xl font-bold mb-1" numberOfLines={1}>
                         {booking.station.name}
                     </Text>
                     <Text className="text-white/50 text-xs" numberOfLines={1}>
@@ -67,7 +67,7 @@ const BookingCard = ({ booking, onCancel, onView }: BookingCardProps) => {
                 <BookingStatItem
                     label="Tesla (Plug)"
                     value={booking.charger.connectorType}
-                    icon={<MaterialCommunityIcons name="ev-plug-tesla" size={24} color="white" />}
+                    icon={<MaterialCommunityIcons name="ev-plug-tesla" size={32} color="white" />}
                     showBorderRight
                 />
                 <BookingStatItem

@@ -14,7 +14,8 @@ import { useLocationStore } from "@/stores/locationStore";
 import ChargingInfoCard from "@/components/home/ChargingInfoCard";
 import HistoryItem from "@/components/home/HistoryItem";
 import { mockChargingInfo, mockHistory } from "@/data/homeData";
-import { AppColors } from "@/constants/theme";
+import { mockChargingProcessData } from "@/data/chargingData";
+import ActiveChargingNotification from "@/components/home/ActiveChargingNotification";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function HomePage() {
@@ -223,19 +224,32 @@ export default function HomePage() {
                                 </TouchableOpacity>
                             </View>
 
-                            {mockHistory.map((item) => (
-                                <HistoryItem
-                                    key={item.id}
-                                    date={item.date}
-                                    duration={item.duration}
-                                    energy={item.energy}
-                                    onPress={() => console.log("View history item", item.id)}
-                                />
-                            ))}
+                            <ScrollView
+                                style={{ maxHeight: 200 }}
+                                nestedScrollEnabled={true}
+                                showsVerticalScrollIndicator={false}
+                            >
+                                {mockHistory.map((item) => (
+                                    <HistoryItem
+                                        key={item.id}
+                                        date={item.date}
+                                        duration={item.duration}
+                                        energy={item.energy}
+                                        onPress={() => console.log("View history item", item.id)}
+                                    />
+                                ))}
+                            </ScrollView>
                         </View>
                     </View>
                 </ScrollView>
             </SafeAreaView>
+
+            {/* Active Charging Notification */}
+            {mockChargingProcessData.status === "CHARGING" && (
+                <View className="absolute bottom-2 left-0 right-0">
+                    <ActiveChargingNotification data={mockChargingProcessData} />
+                </View>
+            )}
 
             {/* Location Permission Modal */}
             <LocationPermissionModal
