@@ -17,7 +17,7 @@ const BookingCard = ({ booking, onCancel, onView }: BookingCardProps) => {
     const isUpcoming = booking.status === "Upcoming";
 
     return (
-        <View className="bg-surface/70 rounded-3xl border border-border p-5 mb-6">
+        <View className="bg-border-gray/20 rounded-3xl border border-border-gray p-5 mb-6">
             {/* Header: Date/Time + Remind Me */}
             <View className="flex-row justify-between items-start mb-4">
                 <View>

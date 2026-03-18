@@ -1,14 +1,14 @@
-import BillingGroupSection from "@/components/notifice/BillingGroupSection";
-import EmptyState from "@/components/notifice/EmptyState";
-import { mockData } from "@/components/notifice/mockData";
-import TabHeader from "@/components/notifice/TabHeader";
+import BillingGroupSection from "@/components/payment/BillingGroupSection";
+import EmptyState from "@/components/payment/EmptyState";
+import { mockData } from "@/components/payment/mockData";
+import TabHeader from "@/components/payment/TabHeader";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useState } from "react";
 import { ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import GradientBackground from "@/components/ui/GradientBackground";
 
-export default function NotificePage() {
+export default function PaymentPage() {
     const [activeTab, setActiveTab] = useState<"payment" | "system">("payment");
 
     return (
@@ -27,7 +27,7 @@ export default function NotificePage() {
                             ))}
                         </View>
                     ) : (
-                        <EmptyState message="No system notifications" />
+                        <EmptyState message="No system payments" />
                     )}
                 </ScrollView>
             </SafeAreaView>

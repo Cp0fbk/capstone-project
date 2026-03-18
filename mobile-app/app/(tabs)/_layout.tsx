@@ -185,12 +185,12 @@ export default function TabLayout() {
             />
 
             <MaterialTopTabs.Screen
-                name="notifice"
+                name="payment"
                 options={{
-                    title: "Notice",
+                    title: "Payment",
                     tabBarIcon: ({ color }: { color: string }) => (
                         <MaterialCommunityIcons
-                            name="bell"
+                            name="wallet"
                             size={28}
                             color={color}
                         />

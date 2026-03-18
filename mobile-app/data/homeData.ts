@@ -28,4 +28,22 @@ export const mockHistory: HistoryActivity[] = [
         duration: "70 min",
         energy: 55,
     },
+    {
+        id: "h2",
+        date: "26 October 2025",
+        duration: "70 min",
+        energy: 50,
+    },
+    {
+        id: "h3",
+        date: "26 October 2025",
+        duration: "70 min",
+        energy: 50,
+    },
+    {
+        id: "h4",
+        date: "26 October 2025",
+        duration: "70 min",
+        energy: 50,
+    },
 ];
