@@ -5,9 +5,11 @@ import GradientBackground from "@/components/ui/GradientBackground";
 import AppHeader from "@/components/ui/AppHeader";
 import BookingTabs from "@/components/booking/BookingTabs";
 import BookingCard from "@/components/booking/BookingCard";
+import { useRouter } from "expo-router";
 import { mockBookings, BookingStatus } from "@/data/bookingData";
 
 export default function BookingPage() {
+    const router = useRouter();
     const [activeTab, setActiveTab] = useState<BookingStatus>("Upcoming");
 
     const filteredBookings = mockBookings.filter(
@@ -33,8 +35,8 @@ export default function BookingPage() {
                         <BookingCard
                             key={booking.id}
                             booking={booking}
-                            onCancel={() => console.log("Cancel", booking.id)}
-                            onView={() => console.log("View", booking.id)}
+                            onCancel={() => router.push({ pathname: "/booking/[id]", params: { id: booking.id } })}
+                            onView={() => router.push({ pathname: "/booking/[id]", params: { id: booking.id } })}
                         />
                     ))}
                 </ScrollView>
