@@ -1,6 +1,7 @@
 package com.project.evgo.charger.internal;
 
 import com.project.evgo.sharedkernel.enums.ChargerStatus;
+import com.project.evgo.sharedkernel.enums.ConnectorType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,12 +10,13 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Charger entity.
+ * Charger entity (maps to OCPP ChargePoint).
  * Internal - not accessible by other modules.
  */
 @Entity
@@ -32,8 +34,12 @@ public class Charger {
     @Column(nullable = false)
     private String name;
 
-    @Column(name = "power_output", nullable = false)
-    private Double powerOutput;
+    @Column(name = "max_power", nullable = false)
+    private Double maxPower;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "connector_type", nullable = false)
+    private ConnectorType connectorType;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -42,8 +48,30 @@ public class Charger {
     @Column(name = "station_id", nullable = false)
     private Long stationId;
 
+    // ==================== OCPP Metadata (populated by BootNotification)
+
+    @Column(name = "charge_point_vendor")
+    private String chargePointVendor;
+
+    @Column(name = "charge_point_model")
+    private String chargePointModel;
+
+    @Column(name = "charge_point_serial")
+    private String chargePointSerial;
+
+    @Column(name = "firmware_version")
+    private String firmwareVersion;
+
+    @Column(name = "ocpp_password")
+    private String ocppPassword;
+
+    @Column(name = "last_heartbeat")
+    private Instant lastHeartbeat;
+
+    // ==================== Relationships ====================
+
     @OneToMany(mappedBy = "charger", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Slot> slots = new ArrayList<>();
+    private List<Port> ports = new ArrayList<>();
 
     @CreationTimestamp
     private LocalDateTime createdAt;

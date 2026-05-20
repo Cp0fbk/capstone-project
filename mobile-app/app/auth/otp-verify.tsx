@@ -1,12 +1,18 @@
+import { resendEmailOtpApi, verifyEmailOtpApi } from "@/apis/authApi/authApi";
 import OTPVerificationStep from "@/components/auth/OTPVerificationStep";
+import { logAxiosError } from "@/utils/errorLogger";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Toast } from "toastify-react-native";
 
 export default function OTPVerifyScreen() {
-    const { phoneNumber } = useLocalSearchParams<{ phoneNumber: string }>();
+    const { email, isResent } = useLocalSearchParams<{
+        email: string;
+        isResent: string;
+    }>();
     const [otp, setOtp] = useState(["", "", "", "", "", ""]);
 
     const handleOTPChange = (index: number, value: string) => {
@@ -29,23 +35,43 @@ export default function OTPVerifyScreen() {
         return null;
     };
 
-    const handleVerifyOTP = () => {
+    const handleVerifyOTP = async () => {
         const otpCode = otp.join("");
         console.log("Verifying OTP:", otpCode);
-        // Logic to verify OTP
-        // After successful verification, navigate to next screen
-        // router.replace("/(tabs)/home");
+        try {
+            const res = await verifyEmailOtpApi(otpCode, email);
+            if (res.status === 200 || res.status === 201) {
+                router.replace("/auth/login");
+            }
+        } catch (error) {
+            logAxiosError(error);
+        }
     };
 
-    const handleResendOTP = () => {
-        console.log("Resending OTP to:", phoneNumber);
-        // Logic to resend OTP
-        setOtp(["", "", "", "", "", ""]);
+    const handleResendOTP = async () => {
+        try {
+            const res = await resendEmailOtpApi(email);
+
+            if (res.status === 200 || res.status === 201) {
+                Toast.success(`OTP has been sent to ${email}`);
+            }
+        } catch (error) {
+            logAxiosError(error);
+            Toast.error("Failed to resend OTP. Please try again.");
+        } finally {
+            setOtp(["", "", "", "", "", ""]);
+        }
     };
 
     const handleBackToPhone = () => {
         router.back();
     };
+
+    useEffect(() => {
+        if (isResent === "true") {
+            handleResendOTP();
+        }
+    }, [isResent]);
 
     return (
         <LinearGradient
@@ -61,7 +87,7 @@ export default function OTPVerifyScreen() {
                     showsVerticalScrollIndicator={false}
                 >
                     <OTPVerificationStep
-                        phoneNumber={phoneNumber || ""}
+                        email={email || ""}
                         otp={otp}
                         onOTPChange={handleOTPChange}
                         onOTPKeyPress={handleOTPKeyPress}

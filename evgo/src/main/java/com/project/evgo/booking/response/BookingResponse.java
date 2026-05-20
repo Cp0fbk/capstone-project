@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import com.project.evgo.sharedkernel.enums.ConnectorType;
 
 /**
  * Response DTO for booking information.
@@ -20,10 +21,25 @@ public class BookingResponse {
 
     private Long id;
     private Long userId;
-    private Long slotId;
+    private Long stationId;
+    private Long chargerId;
+    private Long portId;
+    private Integer portNumber;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private BookingStatus status;
     private BigDecimal totalPrice;
     private LocalDateTime createdAt;
+
+    // Flattened fields for UI
+    private String stationName;
+    private String stationAddress;
+    private String chargerName;
+    private ConnectorType connectorType;
+    private Double maxPower;
+
+    // Vehicle fields
+    private Long vehicleId;
+    private String vehicleBrand;
+    private String vehicleModelName;
 }

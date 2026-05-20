@@ -3,12 +3,16 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { CameraType, CameraView, useCameraPermissions } from "expo-camera";
 import { router } from "expo-router";
 import { useState } from "react";
-import { Button, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-
+import { Alert, Button, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useIsFocused } from "@react-navigation/native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuthStore } from "@/contexts/auth.store";
 export default function QrScanPage() {
     const [facing, setFacing] = useState<CameraType>("back");
     const [permission, requestPermission] = useCameraPermissions();
     const [flashMode, setFlashMode] = useState<"off" | "on">("off");
+    const [scanned, setScanned] = useState(false);
+    const isFocused = useIsFocused();
 
     if (!permission) {
         return <View />;
@@ -18,9 +22,9 @@ export default function QrScanPage() {
         return (
             <View style={{ flex: 1, justifyContent: "center", padding: 20 }}>
                 <Text style={styles.message}>
-                    Cần quyền truy cập camera để quét mã QR
+                    We need your permission to show the camera
                 </Text>
-                <Button onPress={requestPermission} title="Cấp quyền" />
+                <Button onPress={requestPermission} title="Grant Permission" />
             </View>
         );
     }
@@ -32,7 +36,81 @@ export default function QrScanPage() {
         type: string;
         data: string;
     }) {
-        alert(`Đã quét được mã QR!\nLoại: ${type}\nDữ liệu: ${data}`);
+        if (scanned) return;
+        setScanned(true);
+        
+        let portId = data;
+        // Attempt to extract portId if it's a URL (e.g. https://evgo.app/charge?portId=123 or just passing JSON)
+        try {
+            if (data.includes("portId=")) {
+                const urlParams = new URL(data).searchParams;
+                const extracted = urlParams.get("portId");
+                if (extracted) {
+                    portId = extracted;
+                }
+            } else if (data.startsWith("{")) {
+                const parsed = JSON.parse(data);
+                if (parsed.portId) {
+                    portId = parsed.portId;
+                }
+            }
+        } catch (e) {
+            console.log("Error parsing QR data", e);
+        }
+
+        // Validate portId is a valid number
+        const portIdNum = Number(portId);
+        if (isNaN(portIdNum) || portIdNum <= 0) {
+            Alert.alert(
+                "Invalid QR Code",
+                "This QR code does not contain a valid charging port. Please scan a valid EV-Go QR code.",
+                [{ text: "OK", onPress: () => setScanned(false) }]
+            );
+            return;
+        }
+
+        // Show confirmation before starting
+        Alert.alert(
+            "Start Charging",
+            `Do you want to start charging on port #${portId}?`,
+            [
+                {
+                    text: "Cancel",
+                    style: "cancel",
+                    onPress: () => setScanned(false)
+                },
+                {
+                    text: "Start",
+                    onPress: () => {
+                        const { accessToken } = useAuthStore.getState();
+                        if (!accessToken) {
+                            Alert.alert(
+                                "Login Required",
+                                "You must be logged in to start charging.",
+                                [
+                                    { text: "Cancel", style: "cancel", onPress: () => setScanned(false) },
+                                    { 
+                                        text: "Log In", 
+                                        onPress: () => {
+                                            router.push("/auth/login");
+                                            setScanned(false);
+                                        } 
+                                    }
+                                ]
+                            );
+                            return;
+                        }
+                        
+                        router.push({
+                            pathname: "/charging",
+                            params: { portId: portId }
+                        });
+                        // Reset scanned state after a delay to allow scanning again if navigated back
+                        setTimeout(() => setScanned(false), 3000);
+                    }
+                }
+            ]
+        );
     }
 
     function toggleFlash() {
@@ -40,69 +118,60 @@ export default function QrScanPage() {
     }
 
     return (
-        <CameraView
-            style={styles.camera}
-            facing={facing}
-            enableTorch={flashMode === "on"}
-            barcodeScannerSettings={{
-                barcodeTypes: ["qr"],
-            }}
-            onBarcodeScanned={handleBarCodeScanned}
-        >
-            {/* Header */}
-            <View style={styles.header}>
-                <TouchableOpacity
-                    style={styles.headerButton}
-                    onPress={() => router.back()}
-                >
-                    <Ionicons name="close" size={22} color="#333" />
-                </TouchableOpacity>
-                <View style={styles.headerRight}>
-                    <TouchableOpacity onPress={toggleFlash}>
-                        <Ionicons
-                            name={
-                                flashMode === "on" ? "flash" : "flash-outline"
-                            }
-                            size={22}
-                            color="white"
-                        />
-                    </TouchableOpacity>
-                    <TouchableOpacity>
-                        <Feather
-                            name="more-horizontal"
-                            size={24}
-                            color="white"
-                        />
-                    </TouchableOpacity>
-                </View>
-            </View>
+        <View style={{ flex: 1, backgroundColor: "black" }}>
+            {isFocused && (
+                <View style={{ flex: 1 }}>
+                    <CameraView
+                        style={StyleSheet.absoluteFill}
+                        facing={facing}
+                        enableTorch={flashMode === "on"}
+                        barcodeScannerSettings={{
+                            barcodeTypes: ["qr"],
+                        }}
+                        onBarcodeScanned={handleBarCodeScanned}
+                    />
+                    <View style={StyleSheet.absoluteFill}>
+                        {/* Header */}
+                        <SafeAreaView edges={["top", "left", "right"]}>
+                            <View style={styles.header}>
+                                <TouchableOpacity
+                                    style={styles.headerButton}
+                                    onPress={() => router.back()}
+                                >
+                                    <Ionicons name="close" size={22} color="#333" />
+                                </TouchableOpacity>
+                                <View style={styles.headerRight}>
+                                    <TouchableOpacity onPress={toggleFlash}>
+                                        <Ionicons
+                                            name={
+                                                flashMode === "on" ? "flash" : "flash-outline"
+                                            }
+                                            size={22}
+                                            color="white"
+                                        />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        </SafeAreaView>
 
-            {/* Scan Area */}
-            <View style={styles.overlay}>
-                <View style={styles.scanFrame}>
-                    <View style={[styles.corner, styles.cornerTopLeft]} />
-                    <View style={[styles.corner, styles.cornerTopRight]} />
-                    <View style={[styles.corner, styles.cornerBottomLeft]} />
-                    <View style={[styles.corner, styles.cornerBottomRight]} />
-                </View>
-            </View>
-
-            {/* Bottom Section */}
-            <View style={styles.bottomSection}>
-                <Text style={styles.scanText}>Recognize QR code</Text>
-                <View style={styles.bottomButtons}>
-                    <TouchableOpacity style={styles.bottomButton}>
-                        <View style={styles.iconCircle}>
-                            <Ionicons
-                                name="image-outline"
-                                size={28}
-                                color="white"
-                            />
+                        {/* Scan Area */}
+                        <View style={styles.overlay}>
+                            <View style={styles.scanFrame}>
+                                <View style={[styles.corner, styles.cornerTopLeft]} />
+                                <View style={[styles.corner, styles.cornerTopRight]} />
+                                <View style={[styles.corner, styles.cornerBottomLeft]} />
+                                <View style={[styles.corner, styles.cornerBottomRight]} />
+                            </View>
                         </View>
-                    </TouchableOpacity>
+
+                        {/* Bottom Section */}
+                        <View style={styles.bottomSection}>
+                            <Text style={styles.scanText}>Recognize QR code</Text>
+                        </View>
+                    </View>
                 </View>
-            </View>
-        </CameraView>
+            )}
+        </View>
     );
 }
 
@@ -115,8 +184,6 @@ const styles = StyleSheet.create({
     },
     camera: {
         flex: 1,
-        paddingTop: 30,
-        paddingBottom: 40,
     },
     header: {
         flexDirection: "row",

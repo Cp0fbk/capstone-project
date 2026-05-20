@@ -31,8 +31,17 @@ public class Booking {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @Column(name = "slot_id", nullable = false)
-    private Long slotId;
+    @Column(name = "station_id", nullable = false)
+    private Long stationId;
+
+    @Column(name = "charger_id", nullable = false)
+    private Long chargerId;
+
+    @Column(name = "vehicle_id", nullable = false)
+    private Long vehicleId;
+
+    @Column(name = "port_id", nullable = false)
+    private Long portId;
 
     @Column(name = "start_time", nullable = false)
     private LocalDateTime startTime;
@@ -46,6 +55,9 @@ public class Booking {
 
     @Column(name = "total_price", precision = 12, scale = 2)
     private BigDecimal totalPrice;
+
+    @Column(precision = 12, scale = 2)
+    private BigDecimal fee;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

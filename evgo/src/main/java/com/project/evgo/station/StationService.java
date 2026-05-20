@@ -1,6 +1,16 @@
 package com.project.evgo.station;
 
+import com.project.evgo.sharedkernel.enums.StationStatus;
+import com.project.evgo.station.request.CreateStationRequest;
+import com.project.evgo.station.request.SearchNearbyRequest;
+import com.project.evgo.station.request.SearchTextRequest;
+import com.project.evgo.station.request.StationFilterRequest;
+import com.project.evgo.station.request.UpdateStationRequest;
+import com.project.evgo.station.response.StationMetadataResponse;
+import com.project.evgo.sharedkernel.dto.PageResponse;
 import com.project.evgo.station.response.StationResponse;
+import com.project.evgo.station.response.StationSearchResult;
+import com.project.evgo.station.response.StationStatsResponse;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,4 +24,42 @@ public interface StationService {
     Optional<StationResponse> findById(Long id);
 
     List<StationResponse> findAll();
+
+    List<StationResponse> findAllByIds(java.util.Set<Long> ids);
+
+    // Owner-specific operations
+    StationResponse create(CreateStationRequest request);
+
+    StationResponse update(Long id, UpdateStationRequest request);
+
+    void delete(Long id);
+
+    List<StationResponse> getMyStations();
+
+    List<Long> getStationIdsByOwnerId(Long ownerId);
+
+    StationResponse updateStatus(Long id, StationStatus status);
+
+    StationStatsResponse getOwnerStats(Long ownerId);
+
+    List<StationSearchResult> searchNearby(SearchNearbyRequest request);
+
+    List<StationSearchResult> searchByText(SearchTextRequest request);
+
+    List<StationSearchResult> findStationsInBound(Double minLat, Double maxLat, Double minLng, Double maxLng,
+            Double userLat, Double userLng, Integer maxResults);
+
+    // ==================== METADATA & FILTER ====================
+
+    /**
+     * Returns metadata for the station filter UI:
+     * power range, distinct connector types, and all station statuses.
+     */
+    StationMetadataResponse getMetadata();
+
+    /**
+     * Returns filtered stations matching the optional criteria in the request.
+     * Only non-null fields are applied as filters.
+     */
+    PageResponse<StationSearchResult> filterStations(StationFilterRequest request);
 }

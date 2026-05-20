@@ -1,12 +1,33 @@
 package com.project.evgo.station.internal;
 
+import com.project.evgo.sharedkernel.enums.ErrorCode;
+import com.project.evgo.sharedkernel.enums.StationStatus;
+import com.project.evgo.sharedkernel.exceptions.AppException;
 import com.project.evgo.station.StationService;
+import com.project.evgo.station.request.CreateStationRequest;
+import com.project.evgo.station.request.SearchNearbyRequest;
+import com.project.evgo.station.request.SearchTextRequest;
+import com.project.evgo.station.request.StationFilterRequest;
+import com.project.evgo.station.request.UpdateStationRequest;
+import com.project.evgo.station.response.StationMetadataResponse;
 import com.project.evgo.station.response.StationResponse;
+import com.project.evgo.station.response.StationSearchResult;
+import com.project.evgo.station.response.StationStatsResponse;
+import com.project.evgo.sharedkernel.dto.PageResponse;
+import com.project.evgo.user.security.SecurityUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of StationService.
@@ -14,6 +35,7 @@ import java.util.Optional;
  */
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class StationServiceImpl implements StationService {
 
     private final StationRepository stationRepository;
@@ -21,11 +43,305 @@ public class StationServiceImpl implements StationService {
 
     @Override
     public Optional<StationResponse> findById(Long id) {
-        return stationDtoConverter.convert(stationRepository.findById(id));
+        return stationDtoConverter.convert(stationRepository.findByIdAndDeletedAtIsNull(id));
     }
 
     @Override
     public List<StationResponse> findAll() {
-        return stationDtoConverter.convert(stationRepository.findAll());
+        return stationDtoConverter.convert(stationRepository.findAllByDeletedAtIsNull());
+    }
+
+    @Override
+    public List<StationResponse> findAllByIds(java.util.Set<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        return stationDtoConverter.convert(stationRepository.findAllById(ids));
+    }
+
+    @Override
+    @Transactional
+    public StationResponse create(CreateStationRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("Request cannot be null");
+        }
+
+        Long ownerId = SecurityUtil.getCurrentUserId();
+
+        // Check if station name already exists for this owner
+        if (stationRepository.existsByNameAndOwnerIdAndDeletedAtIsNull(request.name(), ownerId)) {
+            throw new AppException(ErrorCode.STATION_NAME_ALREADY_EXISTS);
+        }
+
+        Station station = new Station();
+        station.setOwnerId(ownerId);
+        station.setName(request.name());
+        station.setDescription(request.description());
+        station.setAddress(request.address());
+        station.setLatitude(request.latitude());
+        station.setLongitude(request.longitude());
+        station.setStatus(StationStatus.PENDING);
+        if (request.imageUrls() != null) {
+            station.setImageUrls(request.imageUrls());
+        }
+
+        if (request.openingHours() != null) {
+            List<StationOpeningHours> hours = request.openingHours().stream()
+                    .map(h -> {
+                        StationOpeningHours soh = new StationOpeningHours();
+                        soh.setStation(station);
+                        soh.setDayOfWeek(h.dayOfWeek());
+                        soh.setOpenTime(h.openTime());
+                        soh.setCloseTime(h.closeTime());
+                        soh.setIsOpen(h.isOpen());
+                        return soh;
+                    }).toList();
+            station.setOpeningHours(hours);
+        }
+
+        Station saved = stationRepository.save(station);
+        return stationDtoConverter.convert(saved);
+    }
+
+    @Override
+    @Transactional
+    public StationResponse update(Long id, UpdateStationRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("Request cannot be null");
+        }
+
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+
+        Station station = stationRepository.findByIdAndDeletedAtIsNull(id)
+                .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
+
+        // Check ownership
+        if (!station.getOwnerId().equals(currentUserId)) {
+            throw new AppException(ErrorCode.STATION_NOT_OWNED);
+        }
+
+        // Check for duplicate name (excluding current station)
+        if (stationRepository.existsByNameAndOwnerIdAndIdNotAndDeletedAtIsNull(
+                request.name(), currentUserId, id)) {
+            throw new AppException(ErrorCode.STATION_NAME_ALREADY_EXISTS);
+        }
+
+        station.setName(request.name());
+        station.setDescription(request.description());
+        station.setAddress(request.address());
+        station.setLatitude(request.latitude());
+        station.setLongitude(request.longitude());
+        if (request.imageUrls() != null) {
+            station.setImageUrls(request.imageUrls());
+        }
+
+        if (request.openingHours() != null) {
+            station.getOpeningHours().clear();
+            List<StationOpeningHours> hours = request.openingHours().stream()
+                    .map(h -> {
+                        StationOpeningHours soh = new StationOpeningHours();
+                        soh.setStation(station);
+                        soh.setDayOfWeek(h.dayOfWeek());
+                        soh.setOpenTime(h.openTime());
+                        soh.setCloseTime(h.closeTime());
+                        soh.setIsOpen(h.isOpen());
+                        return soh;
+                    }).toList();
+            station.getOpeningHours().addAll(hours);
+        }
+
+        Station updated = stationRepository.save(station);
+        return stationDtoConverter.convert(updated);
+    }
+
+    @Override
+    @Transactional
+    public void delete(Long id) {
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+
+        Station station = stationRepository.findByIdAndDeletedAtIsNull(id)
+                .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
+
+        // Check ownership
+        if (!station.getOwnerId().equals(currentUserId)) {
+            throw new AppException(ErrorCode.STATION_NOT_OWNED);
+        }
+
+        // Soft delete
+        station.setDeletedAt(LocalDateTime.now());
+        stationRepository.save(station);
+    }
+
+    @Override
+    public List<StationResponse> getMyStations() {
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+        List<Station> stations = stationRepository.findByOwnerIdAndDeletedAtIsNull(currentUserId);
+        return stationDtoConverter.convert(stations);
+    }
+
+    @Override
+    public List<Long> getStationIdsByOwnerId(Long ownerId) {
+        return stationRepository.findByOwnerIdAndDeletedAtIsNull(ownerId)
+                .stream()
+                .map(Station::getId)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public StationResponse updateStatus(Long id, StationStatus status) {
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+
+        Station station = stationRepository.findByIdAndDeletedAtIsNull(id)
+                .orElseThrow(() -> new AppException(ErrorCode.STATION_NOT_FOUND));
+
+        // Check ownership
+        if (!station.getOwnerId().equals(currentUserId)) {
+            throw new AppException(ErrorCode.STATION_NOT_OWNED);
+        }
+
+        station.setStatus(status);
+        Station updated = stationRepository.save(station);
+        return stationDtoConverter.convert(updated);
+    }
+
+    @Override
+    public StationStatsResponse getOwnerStats(Long ownerId) {
+        long totalStations = stationRepository.countByOwnerIdAndDeletedAtIsNull(ownerId);
+        long activeStations = stationRepository.countByOwnerIdAndStatusAndDeletedAtIsNull(ownerId,
+                StationStatus.ACTIVE);
+
+        return StationStatsResponse.builder()
+                .totalStations(totalStations)
+                .activeStations(activeStations)
+                .build();
+    }
+
+    @Override
+    public List<StationSearchResult> searchNearby(SearchNearbyRequest request) {
+        // Validate inputs
+        if (request.latitude() == null || request.longitude() == null) {
+            throw new AppException(ErrorCode.INVALID_REQUEST, "Latitude and longitude are required");
+        }
+
+        // Convert radius from km to meters
+        double radiusMeters = request.radiusKm() * 1000;
+
+        // Query database using optimized PostGIS query
+        List<StationProjection> projections = stationRepository.findNearByStations(
+                request.latitude(),
+                request.longitude(),
+                radiusMeters,
+                request.maxResults());
+
+        // Convert to DTOs with charger counts
+        return stationDtoConverter.convertToSearchResults(projections);
+    }
+
+    @Override
+    public List<StationSearchResult> searchByText(SearchTextRequest request) {
+        // Validate query
+        if (request.query() == null || request.query().isBlank()) {
+            throw new AppException(ErrorCode.INVALID_REQUEST, "Search query is required");
+        }
+
+        // Query database
+        List<StationProjection> projections = stationRepository.searchByText(
+                request.query().trim(),
+                request.latitude(),
+                request.longitude(),
+                request.maxResults());
+
+        // Convert to DTOs with charger counts
+        return stationDtoConverter.convertToSearchResults(projections);
+    }
+
+    @Override
+    public List<StationSearchResult> findStationsInBound(Double minLat, Double maxLat, Double minLng, Double maxLng,
+            Double userLat, Double userLng, Integer maxResults) {
+        // Validate bounding box coordinates
+        if (minLat == null || maxLat == null || minLng == null || maxLng == null) {
+            throw new AppException(ErrorCode.INVALID_REQUEST, "All bounding box coordinates are required");
+        }
+
+        if (minLat >= maxLat) {
+            throw new AppException(ErrorCode.INVALID_REQUEST, "minLat must be less than maxLat");
+        }
+
+        if (minLng >= maxLng) {
+            throw new AppException(ErrorCode.INVALID_REQUEST, "minLng must be less than maxLng");
+        }
+
+        // Query database using PostGIS spatial query with optional distance calculation
+        List<StationProjection> projections = stationRepository.findStationsInBound(
+                minLat, maxLat, minLng, maxLng, userLat, userLng, maxResults);
+
+        // Convert to DTOs with charger counts
+        return stationDtoConverter.convertToSearchResults(projections);
+    }
+
+    // ==================== METADATA & FILTER ====================
+
+    @Override
+    public StationMetadataResponse getMetadata() {
+        Double minPower = stationRepository.findMinPowerOutput();
+        Double maxPower = stationRepository.findMaxPowerOutput();
+        List<String> connectorTypes = stationRepository.findDistinctConnectorTypes();
+
+        // Collect all StationStatus enum values as strings for the frontend, excluding
+        // PENDING
+        List<String> statuses = Arrays.stream(StationStatus.values())
+                .filter(status -> status != StationStatus.PENDING)
+                .map(Enum::name)
+                .collect(Collectors.toList());
+
+        return new StationMetadataResponse(
+                minPower != null ? minPower : 0.0,
+                maxPower != null ? maxPower : 0.0,
+                connectorTypes,
+                statuses);
+    }
+
+    @Override
+    public PageResponse<StationSearchResult> filterStations(StationFilterRequest request) {
+        // Normalise empty connectorTypes list to null — means "no filter"
+        List<String> connectorTypes = (request.connectorTypes() != null && !request.connectorTypes().isEmpty())
+                ? request.connectorTypes()
+                : null;
+
+        String statusStr = request.status() != null ? request.status().name() : null;
+
+        int page = request.page() != null ? Math.max(0, request.page()) : 0;
+        int size = request.size() != null ? Math.max(1, request.size()) : 10;
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<StationProjection> projectionPage;
+        if (connectorTypes != null) {
+            // Use the variant with connector type filter (avoids SpEL null-collection
+            // issues)
+            projectionPage = stationRepository.findFilteredStationsWithConnectors(
+                    request.minPower(),
+                    request.maxPower(),
+                    connectorTypes,
+                    statusStr,
+                    request.query(),
+                    request.userLat(),
+                    request.userLng(),
+                    pageable);
+        } else {
+            projectionPage = stationRepository.findFilteredStations(
+                    request.minPower(),
+                    request.maxPower(),
+                    statusStr,
+                    request.query(),
+                    request.userLat(),
+                    request.userLng(),
+                    pageable);
+        }
+
+        List<StationSearchResult> results = stationDtoConverter.convertToSearchResults(projectionPage.getContent());
+        Page<StationSearchResult> resultPage = new PageImpl<>(results, pageable, projectionPage.getTotalElements());
+
+        return PageResponse.of(resultPage);
     }
 }

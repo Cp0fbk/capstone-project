@@ -1,9 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 
 interface OTPVerificationStepProps {
-    phoneNumber: string;
+    email: string;
     otp: string[];
     onOTPChange: (index: number, value: string) => void;
     onOTPKeyPress: (index: number, key: string) => number | null;
@@ -13,7 +13,7 @@ interface OTPVerificationStepProps {
 }
 
 export default function OTPVerificationStep({
-    phoneNumber,
+    email,
     otp,
     onOTPChange,
     onOTPKeyPress,
@@ -22,7 +22,7 @@ export default function OTPVerificationStep({
     onBack,
 }: OTPVerificationStepProps) {
     const otpInputs = useRef<(TextInput | null)[]>([]);
-    const [timeRemaining, setTimeRemaining] = useState<number>(60);
+    const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
 
     const handleOTPChange = (index: number, value: string) => {
         onOTPChange(index, value);
@@ -31,33 +31,12 @@ export default function OTPVerificationStep({
         }
     };
 
-    const handleResend = () => {
-        setTimeRemaining(60);
-        onResend();
-    };
-
-    const formatTime = (seconds: number) => {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${mins}:${secs.toString().padStart(2, "0")}`;
-    };
-
-    useEffect(() => {
-        if (timeRemaining === 0) return;
-
-        const timer = setTimeout(() => {
-            setTimeRemaining((prev) => prev - 1);
-        }, 1000);
-
-        return () => clearTimeout(timer);
-    }, [timeRemaining]);
-
     return (
         <>
             {/* Back Button */}
             <TouchableOpacity
                 onPress={onBack}
-                className="-mt-12 mb-16 p-3 w-12"
+                className="-mt-12 mb-16 p-3 pl-0 w-12"
             >
                 <Ionicons name="arrow-back" size={24} color="#fff" />
             </TouchableOpacity>
@@ -67,7 +46,7 @@ export default function OTPVerificationStep({
                 Verify Code
             </Text>
             <Text className="mb-10 text-gray-400 text-sm text-center leading-5">
-                Please enter the verification code we sent to {phoneNumber}
+                Please enter the verification code we sent to {email}
             </Text>
 
             {/* OTP Input */}
@@ -75,7 +54,11 @@ export default function OTPVerificationStep({
                 {otp.map((digit, index) => (
                     <View
                         key={index}
-                        className="bg-gray-100 rounded-lg w-12 h-14"
+                        className={`rounded-lg w-12 h-14 ${
+                            focusedIndex === index
+                                ? "bg-white border-2 border-secondary"
+                                : "bg-gray-100"
+                        }`}
                     >
                         <TextInput
                             ref={(ref) => {
@@ -86,19 +69,8 @@ export default function OTPVerificationStep({
                             onChangeText={(value) =>
                                 handleOTPChange(index, value)
                             }
-                            onKeyPress={({ nativeEvent }) => {
-                                const preIndex = onOTPKeyPress(
-                                    index,
-                                    nativeEvent.key
-                                );
-
-                                if (preIndex !== null) {
-                                    // Use setTimeout to ensure state update completes before focusing
-                                    setTimeout(() => {
-                                        otpInputs.current[preIndex]?.focus();
-                                    }, 0);
-                                }
-                            }}
+                            onFocus={() => setFocusedIndex(index)}
+                            onBlur={() => setFocusedIndex(null)}
                             keyboardType="numeric"
                             maxLength={1}
                             selectTextOnFocus
@@ -108,29 +80,13 @@ export default function OTPVerificationStep({
                 ))}
             </View>
 
-            {/* Countdown Timer */}
-            <View className="mb-4">
-                <Text className="text-gray-400 text-sm text-start">
-                    {timeRemaining > 0 ? (
-                        <>
-                            Code will expire in{" "}
-                            <Text className="font-semibold text-yellow-500">
-                                {formatTime(timeRemaining)}
-                            </Text>
-                        </>
-                    ) : (
-                        <Text className="text-red-500">Mã đã hết hạn</Text>
-                    )}
-                </Text>
-            </View>
-
             {/* Resend OTP */}
             <View className="flex-row justify-start mb-6">
                 <Text className="text-gray-400 text-sm">
                     Didn't receive code?{" "}
                 </Text>
-                <TouchableOpacity onPress={handleResend} activeOpacity={0.7}>
-                    <Text className="font-semibold text-green-700 text-sm">
+                <TouchableOpacity onPress={onResend} activeOpacity={0.7}>
+                    <Text className="font-semibold text-green-600 text-sm">
                         Resend
                     </Text>
                 </TouchableOpacity>

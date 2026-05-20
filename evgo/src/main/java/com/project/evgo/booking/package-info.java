@@ -1,4 +1,6 @@
-@org.springframework.modulith.ApplicationModule(displayName = "Booking Management")
+@org.springframework.modulith.ApplicationModule(
+        displayName = "Booking Management"
+)
 package com.project.evgo.booking;
 
 /*

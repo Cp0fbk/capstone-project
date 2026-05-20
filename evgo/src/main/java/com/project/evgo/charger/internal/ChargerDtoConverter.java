@@ -1,51 +1,67 @@
 package com.project.evgo.charger.internal;
 
 import com.project.evgo.charger.response.ChargerResponse;
-import com.project.evgo.charger.response.SlotResponse;
+import com.project.evgo.charger.response.PortResponse;
+import com.project.evgo.sharedkernel.enums.PortStatus;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
 
 /**
- * Converter for Charger and Slot entities to DTOs.
+ * Converter for Charger and Port entities to DTOs.
  */
 @Component
 public class ChargerDtoConverter {
 
     public ChargerResponse toChargerResponse(Charger charger) {
+        List<PortResponse> portResponses = charger.getPorts().stream()
+                .map(this::toPortResponse)
+                .toList();
+
+        int totalPorts = portResponses.size();
+        int availablePorts = (int) charger.getPorts().stream()
+                .filter(p -> p.getStatus() == PortStatus.AVAILABLE)
+                .count();
+
         return ChargerResponse.builder()
                 .id(charger.getId())
                 .name(charger.getName())
-                .powerOutput(charger.getPowerOutput())
+                .maxPower(charger.getMaxPower())
+                .connectorType(charger.getConnectorType())
                 .status(charger.getStatus())
                 .stationId(charger.getStationId())
-                .slots(charger.getSlots().stream()
-                        .map(this::toSlotResponse)
-                        .toList())
+                .ports(portResponses)
+                .totalPorts(totalPorts)
+                .availablePorts(availablePorts)
+                .chargePointVendor(charger.getChargePointVendor())
+                .chargePointModel(charger.getChargePointModel())
+                .chargePointSerial(charger.getChargePointSerial())
+                .firmwareVersion(charger.getFirmwareVersion())
+                .lastHeartbeat(charger.getLastHeartbeat())
                 .createdAt(charger.getCreatedAt())
                 .build();
     }
 
-    public SlotResponse toSlotResponse(Slot slot) {
-        return SlotResponse.builder()
-                .id(slot.getId())
-                .slotNumber(slot.getSlotNumber())
-                .status(slot.getStatus())
-                .chargerId(slot.getCharger().getId())
-                .createdAt(slot.getCreatedAt())
+    public PortResponse toPortResponse(Port port) {
+        return PortResponse.builder()
+                .id(port.getId())
+                .portNumber(port.getPortNumber())
+                .status(port.getStatus())
+                .chargerId(port.getCharger().getId())
+                .createdAt(port.getCreatedAt())
                 .build();
     }
 
-    public List<ChargerResponse> toChargerResponseList(List<Charger> chargers) {
+    public List<ChargerResponse> toChargerResponse(List<Charger> chargers) {
         return chargers.stream()
                 .map(this::toChargerResponse)
                 .toList();
     }
 
-    public List<SlotResponse> toSlotResponseList(List<Slot> slots) {
-        return slots.stream()
-                .map(this::toSlotResponse)
+    public List<PortResponse> toPortResponse(List<Port> ports) {
+        return ports.stream()
+                .map(this::toPortResponse)
                 .toList();
     }
 
@@ -53,7 +69,7 @@ public class ChargerDtoConverter {
         return charger.map(this::toChargerResponse);
     }
 
-    public Optional<SlotResponse> toSlotResponse(Optional<Slot> slot) {
-        return slot.map(this::toSlotResponse);
+    public Optional<PortResponse> toPortResponse(Optional<Port> port) {
+        return port.map(this::toPortResponse);
     }
 }
