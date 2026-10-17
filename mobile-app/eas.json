@@ -4,15 +4,24 @@
     "appVersionSource": "remote"
   },
   "build": {
+    "base": {
+      "node": "22.16.0"
+    },
     "development": {
       "developmentClient": true,
       "distribution": "internal"
     },
     "preview": {
+      "android": {
+        "buildType": "apk"
+      },
       "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "android": {
+        "buildType": "apk"
+      }
     }
   },
   "submit": {

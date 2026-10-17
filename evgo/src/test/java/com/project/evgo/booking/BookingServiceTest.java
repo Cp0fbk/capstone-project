@@ -108,14 +108,14 @@ class BookingServiceTest {
 
 
                 when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-                when(valueOperations.setIfAbsent(anyString(), anyString(), eq(8L), eq(TimeUnit.MINUTES)))
+                when(valueOperations.setIfAbsent(anyString(), anyString(), eq(13L), eq(TimeUnit.MINUTES)))
                                 .thenReturn(true);
 
                 // When
                 bookingService.checkAvailability(req);
 
                 // Then
-                verify(valueOperations, org.mockito.Mockito.times(2)).setIfAbsent(anyString(), anyString(), eq(8L),
+                verify(valueOperations, org.mockito.Mockito.times(2)).setIfAbsent(anyString(), anyString(), eq(13L),
                                 eq(TimeUnit.MINUTES));
         }
     @Test
@@ -130,14 +130,65 @@ class BookingServiceTest {
 
 
                 when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-                when(valueOperations.setIfAbsent(anyString(), anyString(), eq(8L), eq(TimeUnit.MINUTES)))
+                when(valueOperations.setIfAbsent(anyString(), anyString(), eq(13L), eq(TimeUnit.MINUTES)))
                                 .thenReturn(false);
+                when(valueOperations.get(anyString())).thenReturn(null);
 
                 // When / Then
                 assertThatThrownBy(() -> bookingService.checkAvailability(req))
                                 .isInstanceOf(AppException.class)
-                                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.BOOKING_SLOT_UNAVAILABLE);
+                                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.BOOKING_SLOT_TEMPORARILY_LOCKED);
         }
+
+    @Test
+    @DisplayName("checkAvailability_OwnLockedPort_RefreshesTtlAndReturnsSuccess")
+    void checkAvailability_OwnLockedPort_RefreshesTtlAndReturnsSuccess() {
+        // Given
+        CheckAvailabilityRequest req = new CheckAvailabilityRequest(1L, 1L, 100L,
+                LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(2));
+
+        when(bookingRepository.existsByPortIdAndEndTimeAfterAndStartTimeBeforeAndStatusIn(
+                anyLong(), any(), any(), any())).thenReturn(false);
+
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.setIfAbsent(anyString(), anyString(), eq(13L), eq(TimeUnit.MINUTES)))
+                        .thenReturn(false);
+        when(valueOperations.get(anyString())).thenReturn("1"); // Match current user id (1L)
+
+        // When
+        bookingService.checkAvailability(req);
+
+        // Then
+        verify(redisTemplate, org.mockito.Mockito.times(2)).expire(anyString(), eq(13L), eq(TimeUnit.MINUTES));
+    }
+
+    @Test
+    @DisplayName("checkAvailability_OwnLockedPortButOneIntervalBlockedByOther_RollsBackOnlyNewLocks")
+    void checkAvailability_OwnLockedPortButOneIntervalBlockedByOther_RollsBackOnlyNewLocks() {
+        // Given
+        CheckAvailabilityRequest req = new CheckAvailabilityRequest(1L, 1L, 100L,
+                LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(2)); // 2 intervals
+
+        when(bookingRepository.existsByPortIdAndEndTimeAfterAndStartTimeBeforeAndStatusIn(
+                anyLong(), any(), any(), any())).thenReturn(false);
+
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        
+        // Interval 1: setIfAbsent false, owned by current user "1"
+        // Interval 2: setIfAbsent false, owned by other "2"
+        when(valueOperations.setIfAbsent(anyString(), anyString(), eq(13L), eq(TimeUnit.MINUTES)))
+                .thenReturn(false);
+        when(valueOperations.get(anyString()))
+                .thenReturn("1", "2"); // First interval owned by us, second by other
+
+        // When / Then
+        assertThatThrownBy(() -> bookingService.checkAvailability(req))
+                .isInstanceOf(AppException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.BOOKING_SLOT_TEMPORARILY_LOCKED);
+
+        // Verify that we do not delete anything because no new locks were created (only refreshed interval 1)
+        verify(redisTemplate, org.mockito.Mockito.never()).delete(org.mockito.ArgumentMatchers.anyList());
+    }
 
         @ParameterizedTest
         @CsvSource({
@@ -217,7 +268,7 @@ class BookingServiceTest {
 
                 assertThatThrownBy(() -> bookingService.createBooking(req))
                                 .isInstanceOf(AppException.class)
-                                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.BOOKING_SLOT_UNAVAILABLE);
+                                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.BOOKING_SLOT_TEMPORARILY_LOCKED);
         }
 
         @Test
@@ -487,6 +538,28 @@ class BookingServiceTest {
         assertThat(result).hasSize(12);
         assertThat(result.get(0).getBookings()).isEqualTo(0L);
         assertThat(result.get(0).getRevenue()).isEqualTo(java.math.BigDecimal.ZERO);
+    }
+
+    @Test
+    @DisplayName("checkAvailability_WithStartTimeTooFarInPast_ThrowsAppException")
+    void checkAvailability_WithStartTimeTooFarInPast_ThrowsAppException() {
+        CheckAvailabilityRequest req = new CheckAvailabilityRequest(1L, 1L, 100L,
+                LocalDateTime.now().minusMinutes(20), LocalDateTime.now().plusHours(1));
+
+        assertThatThrownBy(() -> bookingService.checkAvailability(req))
+                .isInstanceOf(AppException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT);
+    }
+
+    @Test
+    @DisplayName("checkAvailability_WithEndTimeBeforeStartTime_ThrowsAppException")
+    void checkAvailability_WithEndTimeBeforeStartTime_ThrowsAppException() {
+        CheckAvailabilityRequest req = new CheckAvailabilityRequest(1L, 1L, 100L,
+                LocalDateTime.now().plusHours(2), LocalDateTime.now().plusHours(1));
+
+        assertThatThrownBy(() -> bookingService.checkAvailability(req))
+                .isInstanceOf(AppException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT);
     }
 
 }

@@ -17,6 +17,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -45,9 +46,7 @@ public class BookingScheduler {
 
     private static final String LOCK_PREFIX = "evgo:booking:lock:*";
 
-    // ============================================================
     // Job 1: Clean up Redis keys that are stuck without a TTL
-    // ============================================================
     @Scheduled(fixedRate = 60000)
     public void cleanStuckRedisKeys() {
         redisTemplate.execute((RedisCallback<Void>) connection -> {
@@ -77,10 +76,8 @@ public class BookingScheduler {
         });
     }
 
-    // ============================================================
     // Job 2: Cancel PENDING bookings older than 12 minutes
-    // (8 min for Redis Lock + 4 min safety buffer for payment latency)
-    // ============================================================
+    // (13 min Redis Lock TTL — 1 min buffer = scheduler runs at minute 12)
     @Scheduled(fixedRate = 60000)
     public void cleanupStalePendingBookings() {
         LocalDateTime threshold = LocalDateTime.now().minusMinutes(12);
@@ -94,11 +91,33 @@ public class BookingScheduler {
         }
     }
 
-    // ============================================================
+    // Job 3: Expire no-show CONFIRMED bookings.
+    // A booking is a "no-show" when its endTime has passed.
+    @Scheduled(fixedRate = 60000)
+    public void expireUnusedBookings() {
+        LocalDateTime now = LocalDateTime.now();
+        List<Booking> noShowBookings = bookingRepository.findByStatusAndEndTimeBefore(
+                BookingStatus.CONFIRMED, now);
+
+        if (noShowBookings.isEmpty()) {
+            return;
+        }
+
+        log.info("Found {} no-show CONFIRMED booking(s) past endTime — expiring.", noShowBookings.size());
+
+        for (Booking booking : noShowBookings) {
+            try {
+                bookingService.expireBooking(booking.getId());
+            } catch (Exception e) {
+                log.error("Failed to expire no-show bookingId={}: {}", booking.getId(), e.getMessage());
+            }
+        }
+    }
+
     // Main Job: Unified periodic check for all booking-related actions
     // Runs every 60 seconds. Consolidates 3 previous jobs into 1 query.
-    // ============================================================
     @Scheduled(fixedRate = 60000)
+    @Transactional
     public void processBookings() {
         LocalDateTime now = LocalDateTime.now();
         
@@ -124,8 +143,7 @@ public class BookingScheduler {
         // Pre-fetch ports with upcoming bookings for hard cutoff candidates
         List<Long> hardCutoffPortIds = bookings.stream()
                 .filter(b -> b.getStatus() == BookingStatus.IN_PROGRESS &&
-                             b.getEndTime().isAfter(startWindowFrom) &&
-                             b.getEndTime().isBefore(startWindowTo))
+                             isWithinWindow(b.getEndTime(), startWindowFrom, startWindowTo))
                 .map(Booking::getPortId)
                 .distinct()
                 .toList();
@@ -136,20 +154,20 @@ public class BookingScheduler {
         for (Booking booking : bookings) {
             if (booking.getStatus() == BookingStatus.CONFIRMED) {
                 // Check if it's the start window for hardware lock
-                if (booking.getStartTime().isAfter(startWindowFrom) && booking.getStartTime().isBefore(startWindowTo)) {
+                if (isWithinWindow(booking.getStartTime(), startWindowFrom, startWindowTo)) {
                     handlePreArrivalLock(booking);
                 }
                 // Check if it's the 30-min reminder window
-                if (booking.getStartTime().isAfter(reminderWindowFrom) && booking.getStartTime().isBefore(reminderWindowTo)) {
+                if (isWithinWindow(booking.getStartTime(), reminderWindowFrom, reminderWindowTo)) {
                     handleBookingReminder(booking);
                 }
             } else if (booking.getStatus() == BookingStatus.IN_PROGRESS) {
                 // Check if it's the soft warning window (T-15)
-                if (booking.getEndTime().isAfter(endWindowFrom) && booking.getEndTime().isBefore(endWindowTo)) {
+                if (isWithinWindow(booking.getEndTime(), endWindowFrom, endWindowTo)) {
                     handleSoftWarning(booking);
                 }
                 // Check if it's the hard cutoff window (T-10)
-                if (booking.getEndTime().isAfter(startWindowFrom) && booking.getEndTime().isBefore(startWindowTo)) {
+                if (isWithinWindow(booking.getEndTime(), startWindowFrom, startWindowTo)) {
                     handleHardCutoff(booking, portsWithNextBooking.contains(booking.getPortId()));
                 }
             }
@@ -221,9 +239,11 @@ public class BookingScheduler {
                 booking.getId(), chargePointId, booking.getPortId());
     }
 
-    // ============================================================
-    // Helpers
-    // ============================================================
+
+
+    private boolean isWithinWindow(LocalDateTime time, LocalDateTime from, LocalDateTime to) {
+        return !time.isBefore(from) && !time.isAfter(to);
+    }
 
     /**
      * Resolves the current port status using portId.
@@ -244,11 +264,9 @@ public class BookingScheduler {
                 .orElse(0);
     }
 
-    // ============================================================
     // Job 5: ZaloPay IPN Polling Fallback
     // Runs every 5 minutes. Queries PENDING invoices older than 15
     // minutes against the ZaloPay gateway to recover missed callbacks.
-    // ============================================================
     @Scheduled(fixedRate = 300000)
     public void pollZaloPayPendingInvoices() {
         LocalDateTime threshold = LocalDateTime.now().minusMinutes(15);

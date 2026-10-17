@@ -63,16 +63,12 @@ export default function HomePage() {
                         if (completedSessions.length > 0) {
                             const last = completedSessions[0];
                             setLastSession(last);
-                            if (last.invoiceId) {
-                                invoiceApi.getInvoiceBySessionId(last.id)
-                                    .then(inv => setLastSessionCost(inv.totalCost))
-                                    .catch(err => {
-                                        console.log("Failed to fetch invoice for last session");
-                                        setLastSessionCost(null);
-                                    });
-                            } else {
-                                setLastSessionCost(0);
-                            }
+                            invoiceApi.getInvoiceBySessionId(last.id)
+                                .then(inv => setLastSessionCost(inv.totalCost))
+                                .catch(err => {
+                                    console.log("Failed to fetch invoice for last session:", err);
+                                    setLastSessionCost(0);
+                                });
                         } else {
                             setLastSession(null);
                             setLastSessionCost(null);
@@ -161,22 +157,11 @@ export default function HomePage() {
                     <View className="flex-1">
                         {/* Map Preview */}
                         <View>
-                            <View className="flex-row items-center justify-between">
-                                {/* <Text style={[styles.h3, { marginTop: 30 }]}>Map</Text> */}
-                                <TouchableOpacity
-                                    // @ts-ignore - Dynamic route
-                                    onPress={() => router.push("/map")}
-                                    activeOpacity={0.7}
-                                    className="mt-7"
-                                >
-                                </TouchableOpacity>
-                            </View>
-
                             {/* Conditional: Show live map if permission granted, otherwise static image */}
                             {(locationPerm.hasPermission || globalLocation) && (locationPerm.location || globalLocation) ? (
                                 // Has Location Permission - Show Live Map
                                 <TouchableOpacity
-                                    style={{ height: 208, marginTop: 16 }}
+                                    style={{ height: 208, marginTop: 24 }}
                                     className="rounded-2xl overflow-hidden"
                                     // @ts-ignore - Dynamic route
                                     onPress={() => router.push("/map")}
@@ -226,7 +211,7 @@ export default function HomePage() {
                             ) : (
                                 // No Location Permission - Show Static Image
                                 <TouchableOpacity
-                                    style={{ height: 208, marginTop: 16 }}
+                                    style={{ height: 208, marginTop: 24 }}
                                     className="rounded-2xl overflow-hidden relative"
                                     // @ts-ignore - Dynamic route
                                     onPress={() => router.push("/map")}

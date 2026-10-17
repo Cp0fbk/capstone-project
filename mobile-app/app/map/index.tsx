@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { View, Text, TouchableOpacity, TextInput, FlatList, ActivityIndicator, Keyboard } from "react-native";
 import MapView, { Polyline, PROVIDER_GOOGLE } from "react-native-maps";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 
@@ -33,6 +33,7 @@ export default function MapScreen() {
     const mapLogic = useMapLogic();
     const [showFilterSheet, setShowFilterSheet] = useState(false);
     const [activeFilters, setActiveFilters] = useState<StationFilterParams>();
+    const insets = useSafeAreaInsets();
 
     // Check if there are actual non-default filters applied
     const hasActiveFilters = useMemo(() => {
@@ -46,19 +47,24 @@ export default function MapScreen() {
     }, [activeFilters, mapLogic.filterMeta]);
 
     // Memoize markers with smart state logic
-    const markers = useMemo(
-        () =>
-            mapLogic.stations.map((station) => (
-                <StationMarker
-                    key={station.id}
-                    station={station}
-                    isNavigating={mapLogic.isNavigating}
-                    isDestination={station.id === mapLogic.selectedStation?.id}
-                    onPress={() => mapLogic.handleMarkerPress(station)}
-                />
-            )),
-        [mapLogic.stations, mapLogic.isNavigating, mapLogic.selectedStation]
-    );
+    const markers = useMemo(() => {
+        const renderedStations = new Map(mapLogic.stations.map(s => [s.id, s]));
+        
+        // Ensure destination station is always rendered during navigation, even if outside bounds
+        if (mapLogic.isNavigating && mapLogic.selectedStation && !renderedStations.has(mapLogic.selectedStation.id)) {
+            renderedStations.set(mapLogic.selectedStation.id, mapLogic.selectedStation);
+        }
+
+        return Array.from(renderedStations.values()).map((station) => (
+            <StationMarker
+                key={station.id}
+                station={station}
+                isNavigating={mapLogic.isNavigating}
+                isDestination={station.id === mapLogic.selectedStation?.id}
+                onPress={() => mapLogic.handleMarkerPress(station)}
+            />
+        ));
+    }, [mapLogic.stations, mapLogic.isNavigating, mapLogic.selectedStation]);
 
     // Log polyline state for debugging
     if (mapLogic.isNavigating || mapLogic.routeCoordinates.length > 0) {
@@ -71,21 +77,21 @@ export default function MapScreen() {
 
     return (
         <GradientBackground preset="main" className="flex-1">
-            <SafeAreaView className="flex-1">
+            <View className="flex-1">
                 {/* Header with Search */}
-                <View className="px-4 pb-4 pt-2">
+                <View style={{ paddingTop: insets.top > 0 ? insets.top + 8 : 16 }} className="px-4 pb-4">
                     <View className="flex-row items-center gap-3">
-                        {/* Back Button */}   
+                        {/* Back Button */}
                         <TouchableOpacity
                             onPress={() => router.back()}
                             className="w-12 h-12 bg-white/10 rounded-full items-center justify-center border border-white/20"
                             activeOpacity={0.7}
-                            >
+                        >
                             <Ionicons name="arrow-back" size={24} color="#FFF" />
                         </TouchableOpacity>
 
                         {/* Search Input */}
-                        <View className="flex-1 flex-row items-center bg-white rounded-full px-4 h-12"> 
+                        <View className="flex-1 flex-row items-center bg-white rounded-full px-4 h-12">
                             <Ionicons name="search" size={20} color="#9BA1A6" />
                             <TextInput
                                 className="flex-1 ml-3 text-base text-[#11181C]"
@@ -100,7 +106,7 @@ export default function MapScreen() {
                                     mapLogic.setViewMode("list");
                                     mapLogic.fetchListStations(0, activeFilters);
                                 }}
-                            /> 
+                            />
                         </View>
 
                         {/* Filter Button */}
@@ -108,7 +114,7 @@ export default function MapScreen() {
                             className="w-12 h-12 bg-secondary rounded-full items-center justify-center shadow-lg"
                             activeOpacity={0.7}
                             onPress={() => setShowFilterSheet(true)}
-                            >
+                        >
                             <Ionicons name="options" size={24} color={hasActiveFilters ? "#035c1cff" : "#FFF"} />
                         </TouchableOpacity>
                     </View>
@@ -118,11 +124,11 @@ export default function MapScreen() {
                 <View style={{ flex: 1, display: mapLogic.viewMode === "map" ? "flex" : "none" }}>
                     <View className="flex-1 relative">
                         {/* Debug Info */}
-                        {__DEV__ && (
+                        {/* {__DEV__ && (
                             <View className="absolute top-2 left-2 bg-black/70 px-3 py-2 rounded-lg z-50">
                                 <Text className="text-white text-xs">Stations: {mapLogic.stations.length}</Text>
                             </View>
-                        )}
+                        )} */}
 
                         {/* Map */}
                         <MapView
@@ -238,7 +244,7 @@ export default function MapScreen() {
                         />
                     </View>
                 </View>
-            </SafeAreaView>
+            </View>
 
             {/* Modals */}
             <LocationPermissionModal
